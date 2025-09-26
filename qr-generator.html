@@ -270,8 +270,16 @@
         <div id="status"></div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js" integrity="sha512-SCsNJ5TulRUOgUh2QsGl2TGaKMqfP1dmC7HEnoMNqx5y8JIyWKRqyJbGKhtAYFlOgAh2SxXRZOfDpKPxB5jPSw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- Несколько источников QR библиотеки для надежности -->
+    <script src="https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script>
+        // Fallback если основная библиотека не загрузилась
+        if (typeof QRCode === 'undefined') {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js';
+            document.head.appendChild(script);
+        }
+    </script>
     <script>
         let currentUrl = '';
         let qrLibraryLoaded = false;
@@ -287,9 +295,34 @@
             return false;
         }
 
+        // Простая fallback генерация QR через Google Charts API
+        function generateQRFallback(text, canvas) {
+            const size = 280;
+            const qrUrl = `https://chart.googleapis.com/chart?chs=${size}x${size}&cht=qr&chl=${encodeURIComponent(text)}&choe=UTF-8`;
+            
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = function() {
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                canvas.width = size;
+                canvas.height = size;
+                ctx.drawImage(img, 0, 0, size, size);
+                
+                document.getElementById('qrDisplay').style.display = 'block';
+                showStatus('✅ QR-код создан через Google Charts API!', 'success');
+            };
+            img.onerror = function() {
+                showStatus('❌ Не удалось создать QR-код', 'error');
+            };
+            img.src = qrUrl;
+        }
+
         // Автоматическое определение текущего URL при загрузке
         window.addEventListener('DOMContentLoaded', () => {
-            // Ждем немного для загрузки библиотек
+            showStatus('🚀 Инициализация QR генератора...', 'info');
+            
+            // Ждем загрузки библиотек
             setTimeout(() => {
                 checkQRLibrary();
                 detectCurrentUrl();
@@ -298,12 +331,15 @@
                 checkPublicUrl();
                 
                 // Автоматически генерируем QR для основного чата
-                const chatUrl = window.location.origin;
-                if (chatUrl && isValidUrl(chatUrl)) {
-                    document.getElementById('urlInput').value = chatUrl;
-                    generateQR();
-                }
-            }, 1000);
+                setTimeout(() => {
+                    const chatUrl = window.location.origin;
+                    if (chatUrl && isValidUrl(chatUrl)) {
+                        document.getElementById('urlInput').value = chatUrl;
+                        showStatus('🎯 Генерируем QR для основного чата...', 'info');
+                        generateQR();
+                    }
+                }, 500);
+            }, 1500);
         });
 
         // Проверка публичного URL
@@ -382,50 +418,51 @@
                 return;
             }
 
-            // Проверяем наличие библиотеки QR
-            if (!checkQRLibrary()) {
-                showStatus('❌ Библиотека QR-кода не загружена. Перезагрузите страницу.', 'error');
-                return;
-            }
-
             currentUrl = url;
+            const canvas = document.getElementById('qrCanvas');
             
-            try {
-                // Генерируем QR-код
-                const canvas = document.getElementById('qrCanvas');
-                
-                // Очищаем предыдущий QR код
-                const ctx = canvas.getContext('2d');
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
-                showStatus('🔄 Генерируем QR-код...', 'info');
-                
-                QRCode.toCanvas(canvas, url, {
-                    width: 280,
-                    margin: 3,
-                    color: {
-                        dark: '#374151',
-                        light: '#FFFFFF'
-                    },
-                    errorCorrectionLevel: 'M'
-                }, function (error) {
-                    if (error) {
-                        showStatus('❌ Ошибка создания QR-кода: ' + error.message, 'error');
-                        console.error('QR Generation Error:', error);
-                    } else {
-                        document.getElementById('qrDisplay').style.display = 'block';
-                        showStatus('✅ QR-код успешно создан!', 'success');
-                        
-                        // Скроллим к QR коду
-                        document.getElementById('qrDisplay').scrollIntoView({ 
-                            behavior: 'smooth', 
-                            block: 'center' 
-                        });
-                    }
-                });
-            } catch (error) {
-                showStatus('❌ Критическая ошибка: ' + error.message, 'error');
-                console.error('Critical QR Error:', error);
+            // Очищаем предыдущий QR код
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            showStatus('🔄 Генерируем QR-код...', 'info');
+            
+            // Проверяем наличие библиотеки QR
+            if (checkQRLibrary()) {
+                try {
+                    QRCode.toCanvas(canvas, url, {
+                        width: 280,
+                        margin: 3,
+                        color: {
+                            dark: '#374151',
+                            light: '#FFFFFF'
+                        },
+                        errorCorrectionLevel: 'M'
+                    }, function (error) {
+                        if (error) {
+                            showStatus('⚠️ Переключаемся на резервный метод...', 'info');
+                            console.warn('QR Library Error:', error);
+                            generateQRFallback(url, canvas);
+                        } else {
+                            document.getElementById('qrDisplay').style.display = 'block';
+                            showStatus('✅ QR-код успешно создан!', 'success');
+                            
+                            // Скроллим к QR коду
+                            document.getElementById('qrDisplay').scrollIntoView({ 
+                                behavior: 'smooth', 
+                                block: 'center' 
+                            });
+                        }
+                    });
+                } catch (error) {
+                    showStatus('⚠️ Переключаемся на резервный метод...', 'info');
+                    console.warn('QR Generation Error:', error);
+                    generateQRFallback(url, canvas);
+                }
+            } else {
+                // Используем fallback метод
+                showStatus('⚠️ Используем резервный метод генерации...', 'info');
+                generateQRFallback(url, canvas);
             }
         }
 
@@ -478,27 +515,53 @@
 
         // Диагностика и перезагрузка QR библиотеки
         function checkAndReloadQR() {
-            showStatus('🔍 Проверяем библиотеку QR...', 'info');
+            showStatus('🔍 Диагностика QR генератора...', 'info');
             
             console.log('QRCode доступен:', typeof QRCode !== 'undefined');
             console.log('Canvas элемент:', document.getElementById('qrCanvas'));
             
+            const diagnostics = [];
+            
+            // Проверяем библиотеку
+            if (typeof QRCode !== 'undefined') {
+                diagnostics.push('✅ QR библиотека загружена');
+            } else {
+                diagnostics.push('❌ QR библиотека не загружена');
+            }
+            
+            // Проверяем canvas
+            const canvas = document.getElementById('qrCanvas');
+            if (canvas && canvas.getContext) {
+                diagnostics.push('✅ Canvas поддерживается');
+            } else {
+                diagnostics.push('❌ Canvas не поддерживается');
+            }
+            
+            // Проверяем интернет соединение для Google Charts
+            if (navigator.onLine) {
+                diagnostics.push('✅ Интернет соединение активно');
+            } else {
+                diagnostics.push('❌ Нет интернет соединения');
+            }
+            
+            console.log('Диагностика:', diagnostics);
+            
+            // Пробуем загрузить библиотеку заново
             if (typeof QRCode === 'undefined') {
-                showStatus('❌ QR библиотека не загружена. Перезагружаем...', 'error');
+                showStatus('🔄 Загружаем QR библиотеку...', 'info');
                 
-                // Перезагружаем библиотеку
                 const script = document.createElement('script');
-                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js';
+                script.src = 'https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js';
                 script.onload = () => {
-                    showStatus('✅ QR библиотека перезагружена!', 'success');
+                    showStatus('✅ QR библиотека успешно загружена!', 'success');
                     qrLibraryLoaded = true;
                 };
                 script.onerror = () => {
-                    showStatus('❌ Не удалось загрузить QR библиотеку', 'error');
+                    showStatus('⚠️ Основная библиотека недоступна, но есть резервный метод!', 'info');
                 };
                 document.head.appendChild(script);
             } else {
-                showStatus('✅ QR библиотека работает корректно!', 'success');
+                showStatus('✅ Все системы работают! Можно генерировать QR коды.', 'success');
             }
         }
 
