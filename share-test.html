@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест ссылок шаринга - Анонимный чат</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+        
+        .test-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        
+        .url-display {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            word-break: break-all;
+            margin: 10px 0;
+            position: relative;
+        }
+        
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        
+        .test-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px 10px 10px 0;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .test-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .whatsapp { background: #25D366; }
+        .telegram { background: #0088cc; }
+        .facebook { background: #1877f2; }
+        .twitter { background: #1da1f2; }
+        
+        .status {
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+        
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        
+        .qr-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        #qrcode {
+            margin: 20px auto;
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .device-info {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔗 Тест ссылок шаринга</h1>
+        
+        <div class="device-info" id="deviceInfo">
+            Загружаем информацию об устройстве...
+        </div>
+        
+        <div class="test-section">
+            <h3>📱 WhatsApp</h3>
+            <p>Тестируем ссылки для WhatsApp на разных устройствах:</p>
+            
+            <div class="url-display" id="whatsappWeb">
+                <button class="copy-btn" onclick="copyUrl('whatsappWeb')">Copy</button>
+                <strong>Web:</strong> <span id="whatsappWebUrl">Генерируем...</span>
+            </div>
+            
+            <div class="url-display" id="whatsappApp">
+                <button class="copy-btn" onclick="copyUrl('whatsappApp')">Copy</button>
+                <strong>App:</strong> <span id="whatsappAppUrl">Генерируем...</span>
+            </div>
+            
+            <a href="#" class="test-btn whatsapp" id="testWhatsAppWeb">
+                <i class="fab fa-whatsapp"></i> Тест Web WhatsApp
+            </a>
+            <a href="#" class="test-btn whatsapp" id="testWhatsAppApp">
+                <i class="fab fa-whatsapp"></i> Тест App WhatsApp
+            </a>
+            
+            <div id="whatsappStatus"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📨 Telegram</h3>
+            <p>Тестируем ссылки для Telegram:</p>
+            
+            <div class="url-display" id="telegramWeb">
+                <button class="copy-btn" onclick="copyUrl('telegramWeb')">Copy</button>
+                <strong>Web:</strong> <span id="telegramWebUrl">Генерируем...</span>
+            </div>
+            
+            <div class="url-display" id="telegramApp">
+                <button class="copy-btn" onclick="copyUrl('telegramApp')">Copy</button>
+                <strong>App:</strong> <span id="telegramAppUrl">Генерируем...</span>
+            </div>
+            
+            <a href="#" class="test-btn telegram" id="testTelegramWeb">
+                <i class="fab fa-telegram"></i> Тест Web Telegram
+            </a>
+            <a href="#" class="test-btn telegram" id="testTelegramApp">
+                <i class="fab fa-telegram"></i> Тест App Telegram
+            </a>
+            
+            <div id="telegramStatus"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📘 Facebook & 🐦 Twitter</h3>
+            
+            <div class="url-display" id="facebook">
+                <button class="copy-btn" onclick="copyUrl('facebook')">Copy</button>
+                <strong>Facebook:</strong> <span id="facebookUrl">Генерируем...</span>
+            </div>
+            
+            <div class="url-display" id="twitter">
+                <button class="copy-btn" onclick="copyUrl('twitter')">Copy</button>
+                <strong>Twitter:</strong> <span id="twitterUrl">Генерируем...</span>
+            </div>
+            
+            <a href="#" class="test-btn facebook" id="testFacebook">
+                <i class="fab fa-facebook"></i> Тест Facebook
+            </a>
+            <a href="#" class="test-btn twitter" id="testTwitter">
+                <i class="fab fa-twitter"></i> Тест Twitter
+            </a>
+        </div>
+        
+        <div class="test-section">
+            <h3>📱 Нативный шаринг</h3>
+            <p>Проверяем поддержку Web Share API:</p>
+            
+            <button class="test-btn" id="testNativeShare">
+                <i class="fas fa-share"></i> Тест нативного шаринга
+            </button>
+            
+            <div id="nativeShareStatus"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📱 QR код</h3>
+            <p>QR код для быстрого доступа к чату:</p>
+            
+            <div class="qr-container">
+                <div id="qrcode"></div>
+            </div>
+            
+            <div class="info-box">
+                <strong>Как использовать:</strong><br>
+                1. Отсканируйте QR код камерой телефона<br>
+                2. Или воспользуйтесь QR сканером<br>
+                3. Откроется ссылка на чат
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🚀 Быстрые действия</h3>
+            
+            <a href="/" class="test-btn">
+                <i class="fas fa-comments"></i> Открыть чат
+            </a>
+            
+            <a href="/mobile-test.html" class="test-btn">
+                <i class="fas fa-mobile-alt"></i> Мобильный тест
+            </a>
+            
+            <a href="/qr-generator.html" class="test-btn">
+                <i class="fas fa-qrcode"></i> QR генератор
+            </a>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
+    <script>
+        const chatUrl = window.location.origin;
+        const shareText = 'Присоединяйтесь к анонимному чату! 💬';
+        const shareTitle = 'Анонимный чат - Flutter Flow';
+        
+        // Определение устройства и браузера
+        function detectDevice() {
+            const userAgent = navigator.userAgent;
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+            const isIOS = /iPad|iPhone|iPod/.test(userAgent);
+            const isAndroid = /Android/.test(userAgent);
+            const isSafari = /Safari/.test(userAgent) && !/Chrome/.test(userAgent);
+            const isChrome = /Chrome/.test(userAgent);
+            
+            return { isMobile, isIOS, isAndroid, isSafari, isChrome };
+        }
+        
+        // Показать информацию об устройстве
+        function showDeviceInfo() {
+            const device = detectDevice();
+            const deviceInfo = document.getElementById('deviceInfo');
+            
+            deviceInfo.innerHTML = `
+                <strong>Устройство:</strong> ${device.isMobile ? 'Мобильное' : 'Десктоп'} | 
+                <strong>ОС:</strong> ${device.isIOS ? 'iOS' : device.isAndroid ? 'Android' : 'Другая'} | 
+                <strong>Браузер:</strong> ${device.isChrome ? 'Chrome' : device.isSafari ? 'Safari' : 'Другой'} |
+                <strong>Web Share API:</strong> ${navigator.share ? 'Поддерживается' : 'Не поддерживается'}
+            `;
+        }
+        
+        // Генерация ссылок
+        function generateUrls() {
+            const encodedText = encodeURIComponent(shareText);
+            const encodedUrl = encodeURIComponent(chatUrl);
+            const fullMessage = encodeURIComponent(`${shareText}\n\n${chatUrl}`);
+            
+            // WhatsApp ссылки
+            document.getElementById('whatsappWebUrl').textContent = `https://wa.me/?text=${fullMessage}`;
+            document.getElementById('whatsappAppUrl').textContent = `whatsapp://send?text=${fullMessage}`;
+            
+            // Telegram ссылки
+            document.getElementById('telegramWebUrl').textContent = `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`;
+            document.getElementById('telegramAppUrl').textContent = `tg://msg_url?url=${encodedUrl}&text=${encodedText}`;
+            
+            // Facebook и Twitter
+            document.getElementById('facebookUrl').textContent = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+            document.getElementById('twitterUrl').textContent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText + ' ' + chatUrl)}`;
+            
+            // Устанавливаем ссылки на кнопки
+            document.getElementById('testWhatsAppWeb').href = `https://wa.me/?text=${fullMessage}`;
+            document.getElementById('testWhatsAppApp').href = `whatsapp://send?text=${fullMessage}`;
+            document.getElementById('testTelegramWeb').href = `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`;
+            document.getElementById('testTelegramApp').href = `tg://msg_url?url=${encodedUrl}&text=${encodedText}`;
+            document.getElementById('testFacebook').href = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+            document.getElementById('testTwitter').href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText + ' ' + chatUrl)}`;
+        }
+        
+        // Копирование ссылки
+        function copyUrl(elementId) {
+            const element = document.getElementById(elementId + 'Url');
+            const text = element.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                showStatus('success', 'Ссылка скопирована! 📋');
+            }).catch(() => {
+                // Fallback для старых браузеров
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showStatus('success', 'Ссылка скопирована! 📋');
+            });
+        }
+        
+        // Показать статус
+        function showStatus(type, message) {
+            const statusDiv = document.createElement('div');
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = message;
+            
+            document.body.appendChild(statusDiv);
+            statusDiv.style.position = 'fixed';
+            statusDiv.style.top = '20px';
+            statusDiv.style.right = '20px';
+            statusDiv.style.zIndex = '9999';
+            
+            setTimeout(() => {
+                statusDiv.remove();
+            }, 3000);
+        }
+        
+        // Тест нативного шаринга
+        function testNativeShare() {
+            const statusElement = document.getElementById('nativeShareStatus');
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: shareTitle,
+                    text: shareText,
+                    url: chatUrl
+                }).then(() => {
+                    statusElement.innerHTML = '<div class="status success">Нативный шаринг работает! ✅</div>';
+                }).catch((error) => {
+                    statusElement.innerHTML = `<div class="status error">Ошибка шаринга: ${error.message}</div>`;
+                });
+            } else {
+                statusElement.innerHTML = '<div class="status warning">Web Share API не поддерживается в этом браузере</div>';
+            }
+        }
+        
+        // Генерация QR кода
+        function generateQR() {
+            const qrElement = document.getElementById('qrcode');
+            qrElement.innerHTML = '';
+            
+            new QRCode(qrElement, {
+                text: chatUrl,
+                width: 200,
+                height: 200,
+                colorDark: '#667eea',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.M
+            });
+        }
+        
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', () => {
+            showDeviceInfo();
+            generateUrls();
+            generateQR();
+            
+            // Обработчик нативного шаринга
+            document.getElementById('testNativeShare').addEventListener('click', testNativeShare);
+            
+            // Проверка работы ссылок
+            document.querySelectorAll('.test-btn[href^="whatsapp://"], .test-btn[href^="tg://"]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    // Для app ссылок добавляем fallback
+                    const href = e.target.href;
+                    
+                    setTimeout(() => {
+                        if (href.startsWith('whatsapp://')) {
+                            window.open(document.getElementById('testWhatsAppWeb').href, '_blank');
+                        } else if (href.startsWith('tg://')) {
+                            window.open(document.getElementById('testTelegramWeb').href, '_blank');
+                        }
+                    }, 2000);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
