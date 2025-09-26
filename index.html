@@ -66,6 +66,9 @@
                     <a href="/connect.html" class="mobile-connect-btn" title="Подключить телефон">
                         <i class="fas fa-mobile-alt"></i>
                     </a>
+                    <button class="share-chat-btn" id="shareChatBtn" title="Поделиться чатом">
+                        <i class="fas fa-share-alt"></i>
+                    </button>
                 </div>
             </div>
         </div>
@@ -147,6 +150,60 @@
 
     <!-- Уведомления -->
     <div class="notifications" id="notifications"></div>
+
+    <!-- Модальное окно для шаринга -->
+    <div class="modal-overlay" id="shareModal">
+        <div class="modal-content share-modal-content">
+            <div class="modal-header">
+                <h3>Поделиться чатом</h3>
+                <button class="close-btn" onclick="closeShareModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Пригласите друзей в анонимный чат! 🎉</p>
+                
+                <div class="share-url-container">
+                    <input type="text" id="shareUrl" class="share-url-input" readonly>
+                    <button class="copy-url-btn" onclick="copyShareUrl()">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                
+                <div class="share-buttons">
+                    <button class="share-btn whatsapp-btn" onclick="shareToWhatsApp()">
+                        <i class="fab fa-whatsapp"></i>
+                        WhatsApp
+                    </button>
+                    <button class="share-btn telegram-btn" onclick="shareToTelegram()">
+                        <i class="fab fa-telegram"></i>
+                        Telegram
+                    </button>
+                    <button class="share-btn facebook-btn" onclick="shareToFacebook()">
+                        <i class="fab fa-facebook"></i>
+                        Facebook
+                    </button>
+                    <button class="share-btn twitter-btn" onclick="shareToTwitter()">
+                        <i class="fab fa-twitter"></i>
+                        Twitter
+                    </button>
+                    <button class="share-btn native-share-btn" onclick="nativeShare()">
+                        <i class="fas fa-share"></i>
+                        Поделиться
+                    </button>
+                </div>
+                
+                <div class="qr-section">
+                    <p>Или отсканируйте QR код:</p>
+                    <div class="qr-code-container" id="shareQrCode"></div>
+                    <a href="/qr-generator.html" class="qr-generator-link">
+                        <i class="fas fa-qrcode"></i>
+                        Создать QR код
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>

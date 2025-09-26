@@ -514,6 +514,160 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 10000);
     
     console.log('Чат готов к работе');
+    
+    // Инициализация кнопки шаринга
+    const shareChatBtn = document.getElementById('shareChatBtn');
+    if (shareChatBtn) {
+        shareChatBtn.addEventListener('click', openShareModal);
+    }
+});
+
+// Функции шаринга
+const shareManager = {
+    currentUrl: window.location.href,
+    shareText: 'Присоединяйтесь к анонимному чату! 💬',
+    shareTitle: 'Анонимный чат - Flutter Flow',
+    
+    // Получить текущую ссылку
+    getCurrentUrl: () => {
+        return shareManager.currentUrl;
+    },
+    
+    // Генерация QR кода для ссылки
+    generateQR: (url) => {
+        const qrContainer = document.getElementById('shareQrCode');
+        if (qrContainer && typeof QRCode !== 'undefined') {
+            qrContainer.innerHTML = '';
+            new QRCode(qrContainer, {
+                text: url,
+                width: 120,
+                height: 120,
+                colorDark: '#667eea',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.M
+            });
+        }
+    }
+};
+
+// Открыть модальное окно шаринга
+function openShareModal() {
+    const shareModal = document.getElementById('shareModal');
+    const shareUrlInput = document.getElementById('shareUrl');
+    
+    if (shareModal && shareUrlInput) {
+        shareUrlInput.value = shareManager.getCurrentUrl();
+        shareModal.style.display = 'flex';
+        
+        // Генерируем QR код
+        setTimeout(() => {
+            shareManager.generateQR(shareManager.getCurrentUrl());
+        }, 100);
+    }
+}
+
+// Закрыть модальное окно шаринга
+function closeShareModal() {
+    const shareModal = document.getElementById('shareModal');
+    if (shareModal) {
+        shareModal.style.display = 'none';
+    }
+}
+
+// Копировать ссылку
+function copyShareUrl() {
+    const shareUrlInput = document.getElementById('shareUrl');
+    if (shareUrlInput) {
+        shareUrlInput.select();
+        shareUrlInput.setSelectionRange(0, 99999);
+        
+        try {
+            document.execCommand('copy');
+            utils.showNotification('Ссылка скопирована! 📋', 'success');
+        } catch (err) {
+            console.error('Ошибка копирования:', err);
+            utils.showNotification('Не удалось скопировать ссылку', 'error');
+        }
+    }
+}
+
+// Поделиться в WhatsApp
+function shareToWhatsApp() {
+    const url = shareManager.getCurrentUrl();
+    const text = encodeURIComponent(`${shareManager.shareText}\n\n${url}`);
+    const whatsappUrl = `https://wa.me/?text=${text}`;
+    
+    // Для мобильных используем whatsapp:// схему
+    if (mobileSupport.isMobile()) {
+        const whatsappApp = `whatsapp://send?text=${text}`;
+        window.location.href = whatsappApp;
+        
+        // Fallback к веб-версии через 2 секунды
+        setTimeout(() => {
+            window.open(whatsappUrl, '_blank');
+        }, 2000);
+    } else {
+        window.open(whatsappUrl, '_blank');
+    }
+}
+
+// Поделиться в Telegram
+function shareToTelegram() {
+    const url = shareManager.getCurrentUrl();
+    const text = encodeURIComponent(shareManager.shareText);
+    const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${text}`;
+    
+    if (mobileSupport.isMobile()) {
+        const telegramApp = `tg://msg_url?url=${encodeURIComponent(url)}&text=${text}`;
+        window.location.href = telegramApp;
+        
+        setTimeout(() => {
+            window.open(telegramUrl, '_blank');
+        }, 2000);
+    } else {
+        window.open(telegramUrl, '_blank');
+    }
+}
+
+// Поделиться в Facebook
+function shareToFacebook() {
+    const url = shareManager.getCurrentUrl();
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+    window.open(facebookUrl, '_blank');
+}
+
+// Поделиться в Twitter
+function shareToTwitter() {
+    const url = shareManager.getCurrentUrl();
+    const text = encodeURIComponent(`${shareManager.shareText} ${url}`);
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${text}`;
+    window.open(twitterUrl, '_blank');
+}
+
+// Нативный шаринг
+function nativeShare() {
+    if (navigator.share) {
+        navigator.share({
+            title: shareManager.shareTitle,
+            text: shareManager.shareText,
+            url: shareManager.getCurrentUrl()
+        }).then(() => {
+            console.log('Успешно поделились');
+        }).catch((error) => {
+            console.log('Ошибка шаринга:', error);
+            copyShareUrl(); // Fallback к копированию
+        });
+    } else {
+        copyShareUrl(); // Fallback к копированию
+    }
+}
+
+// Закрытие модального окна по клику вне его
+document.addEventListener('click', (e) => {
+    const shareModal = document.getElementById('shareModal');
+    if (shareModal && e.target === shareModal) {
+        closeShareModal();
+    }
 });
 
 // Обработка ошибок
