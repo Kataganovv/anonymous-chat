@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Тест мобильных функций - Анонимный чат</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .test-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .test-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .status {
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin: 5px 10px 5px 0;
+            display: inline-block;
+            font-weight: 500;
+        }
+        
+        .status.success {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .status.warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .test-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            margin: 5px;
+            cursor: pointer;
+            min-height: 44px;
+            font-size: 14px;
+        }
+        
+        .test-button:active {
+            transform: scale(0.95);
+        }
+        
+        .device-info {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Тест мобильных функций</h1>
+        
+        <div class="test-section">
+            <h3>📱 Определение устройства</h3>
+            <div id="deviceDetection">
+                <p>Проверяем...</p>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🔧 Поддержка технологий</h3>
+            <div id="featureSupport">
+                <p>Проверяем поддержку...</p>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📏 Информация о экране</h3>
+            <div id="screenInfo">
+                <p>Получаем данные...</p>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🎯 Тест touch-событий</h3>
+            <button class="test-button" id="testTouch">Тест касания</button>
+            <button class="test-button" id="testLongPress">Тест долгого нажатия</button>
+            <div id="touchResults"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📦 PWA функции</h3>
+            <button class="test-button" id="testPWA">Проверить PWA</button>
+            <button class="test-button" id="testServiceWorker">Service Worker</button>
+            <div id="pwaResults"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📋 Системная информация</h3>
+            <div class="device-info" id="systemInfo"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🚀 Переход к чату</h3>
+            <a href="index.html" class="test-button" style="text-decoration: none; display: inline-block;">
+                Открыть чат
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Функции проверки
+        function checkDevice() {
+            const deviceInfo = document.getElementById('deviceDetection');
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const isTouch = 'ontouchstart' in window;
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isAndroid = /Android/.test(navigator.userAgent);
+            
+            let html = '';
+            html += `<div class="status ${isMobile ? 'success' : 'warning'}">Мобильное: ${isMobile ? 'Да' : 'Нет'}</div>`;
+            html += `<div class="status ${isTouch ? 'success' : 'warning'}">Touch: ${isTouch ? 'Да' : 'Нет'}</div>`;
+            html += `<div class="status ${isIOS ? 'success' : 'warning'}">iOS: ${isIOS ? 'Да' : 'Нет'}</div>`;
+            html += `<div class="status ${isAndroid ? 'success' : 'warning'}">Android: ${isAndroid ? 'Да' : 'Нет'}</div>`;
+            
+            deviceInfo.innerHTML = html;
+        }
+        
+        function checkFeatures() {
+            const featureInfo = document.getElementById('featureSupport');
+            
+            const features = [
+                { name: 'Service Worker', check: 'serviceWorker' in navigator },
+                { name: 'Push API', check: 'PushManager' in window },
+                { name: 'Notification API', check: 'Notification' in window },
+                { name: 'Geolocation', check: 'geolocation' in navigator },
+                { name: 'Web Share API', check: 'share' in navigator },
+                { name: 'Visual Viewport', check: 'visualViewport' in window },
+                { name: 'Device Orientation', check: 'DeviceOrientationEvent' in window },
+                { name: 'Vibrate API', check: 'vibrate' in navigator }
+            ];
+            
+            let html = '';
+            features.forEach(feature => {
+                html += `<div class="status ${feature.check ? 'success' : 'error'}">${feature.name}: ${feature.check ? 'Да' : 'Нет'}</div>`;
+            });
+            
+            featureInfo.innerHTML = html;
+        }
+        
+        function checkScreen() {
+            const screenInfo = document.getElementById('screenInfo');
+            
+            const info = {
+                'Размер экрана': `${screen.width}x${screen.height}`,
+                'Размер окна': `${window.innerWidth}x${window.innerHeight}`,
+                'Device Pixel Ratio': window.devicePixelRatio,
+                'Ориентация': screen.orientation ? screen.orientation.type : 'Неизвестно',
+                'Color Depth': screen.colorDepth,
+                'Pixel Depth': screen.pixelDepth
+            };
+            
+            let html = '<div class="device-info">';
+            Object.entries(info).forEach(([key, value]) => {
+                html += `<div><strong>${key}:</strong> ${value}</div>`;
+            });
+            html += '</div>';
+            
+            screenInfo.innerHTML = html;
+        }
+        
+        function setupTouchTests() {
+            const touchBtn = document.getElementById('testTouch');
+            const longPressBtn = document.getElementById('testLongPress');
+            const results = document.getElementById('touchResults');
+            
+            touchBtn.addEventListener('touchstart', () => {
+                results.innerHTML = '<div class="status success">Touch Start работает! ✓</div>';
+            });
+            
+            touchBtn.addEventListener('click', () => {
+                if (!results.innerHTML.includes('Touch Start')) {
+                    results.innerHTML = '<div class="status warning">Работает только Click событие</div>';
+                }
+            });
+            
+            let longPressTimer;
+            longPressBtn.addEventListener('touchstart', (e) => {
+                longPressTimer = setTimeout(() => {
+                    results.innerHTML += '<div class="status success">Долгое нажатие работает! ✓</div>';
+                    if (navigator.vibrate) {
+                        navigator.vibrate(100);
+                    }
+                }, 500);
+            });
+            
+            longPressBtn.addEventListener('touchend', () => {
+                clearTimeout(longPressTimer);
+            });
+        }
+        
+        function setupPWATests() {
+            const pwaBtn = document.getElementById('testPWA');
+            const swBtn = document.getElementById('testServiceWorker');
+            const results = document.getElementById('pwaResults');
+            
+            pwaBtn.addEventListener('click', async () => {
+                let html = '';
+                
+                // Проверка manifest
+                const manifestLink = document.querySelector('link[rel="manifest"]');
+                html += `<div class="status ${manifestLink ? 'success' : 'error'}">Manifest: ${manifestLink ? 'Найден' : 'Не найден'}</div>`;
+                
+                // Проверка HTTPS
+                html += `<div class="status ${location.protocol === 'https:' ? 'success' : 'warning'}">HTTPS: ${location.protocol === 'https:' ? 'Да' : 'Нет'}</div>`;
+                
+                results.innerHTML = html;
+            });
+            
+            swBtn.addEventListener('click', async () => {
+                if ('serviceWorker' in navigator) {
+                    try {
+                        const registration = await navigator.serviceWorker.getRegistration();
+                        results.innerHTML += `<div class="status ${registration ? 'success' : 'warning'}">Service Worker: ${registration ? 'Зарегистрирован' : 'Не найден'}</div>`;
+                    } catch (error) {
+                        results.innerHTML += '<div class="status error">Service Worker: Ошибка проверки</div>';
+                    }
+                } else {
+                    results.innerHTML += '<div class="status error">Service Worker: Не поддерживается</div>';
+                }
+            });
+        }
+        
+        function showSystemInfo() {
+            const systemInfo = document.getElementById('systemInfo');
+            
+            const info = {
+                'User Agent': navigator.userAgent,
+                'Platform': navigator.platform,
+                'Language': navigator.language,
+                'Languages': navigator.languages ? navigator.languages.join(', ') : 'Неизвестно',
+                'Online': navigator.onLine,
+                'Connection': navigator.connection ? 
+                    `${navigator.connection.effectiveType} (${navigator.connection.downlink}Mbps)` : 
+                    'Неизвестно',
+                'Memory': navigator.deviceMemory ? `${navigator.deviceMemory}GB` : 'Неизвестно',
+                'Hardware Concurrency': navigator.hardwareConcurrency || 'Неизвестно'
+            };
+            
+            let html = '';
+            Object.entries(info).forEach(([key, value]) => {
+                html += `<div><strong>${key}:</strong> ${value}</div>`;
+            });
+            
+            systemInfo.innerHTML = html;
+        }
+        
+        // Инициализация при загрузке
+        document.addEventListener('DOMContentLoaded', () => {
+            checkDevice();
+            checkFeatures();
+            checkScreen();
+            setupTouchTests();
+            setupPWATests();
+            showSystemInfo();
+            
+            // Обновление размеров при изменении ориентации
+            window.addEventListener('orientationchange', () => {
+                setTimeout(checkScreen, 500);
+            });
+            
+            // Обновление размеров при изменении размера окна
+            window.addEventListener('resize', checkScreen);
+        });
+    </script>
+</body>
+</html>
