@@ -1,0 +1,67 @@
+{
+  "name": "Анонимный чат",
+  "short_name": "AnonChat",
+  "description": "Бесплатный анонимный чат для общения без регистрации",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#667eea",
+  "theme_color": "#667eea",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "ru",
+  "categories": ["social", "communication"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.svg", 
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 390 844'><rect width='390' height='844' fill='%23667eea'/><text y='50' font-size='24' text-anchor='middle' x='195' fill='white'>Анонимный чат</text><text y='100' font-size='16' text-anchor='middle' x='195' fill='white'>Современный чат для общения</text></svg>",
+      "sizes": "390x844",
+      "type": "image/svg+xml",
+      "form_factor": "narrow",
+      "label": "Мобильная версия чата"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Начать общение",
+      "short_name": "Чат",
+      "description": "Перейти к чату",
+      "url": "/",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='60' text-anchor='middle' x='50'>💬</text></svg>",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "QR-код",
+      "short_name": "QR",
+      "description": "Создать QR-код",
+      "url": "/qr-generator.html",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='60' text-anchor='middle' x='50'>📱</text></svg>",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
+}

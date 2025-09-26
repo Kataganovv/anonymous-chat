@@ -476,10 +476,23 @@ const uiController = {
 
 // Инициализация приложения
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('Инициализация чата...');
+    
+    // Инициализация мобильной поддержки
+    mobileSupport.init();
+    
+    // Инициализация UI
     uiController.init();
     
     // Обновляем счётчик онлайн с случайным числом
     onlineManager.updateCount(Math.floor(Math.random() * 5) + 1);
+    
+    // Мобильное приветствие
+    if (mobileSupport.isMobile()) {
+        setTimeout(() => {
+            messageManager.addMessage('system', 'Вы используете мобильное устройство! Для лучшего опыта установите приложение 📱', 'system');
+        }, 2000);
+    }
     
     // Периодически обновляем время в сообщениях
     setInterval(() => {
@@ -499,6 +512,8 @@ document.addEventListener('DOMContentLoaded', () => {
             chatSimulation.simulateResponse();
         }
     }, 10000);
+    
+    console.log('Чат готов к работе');
 });
 
 // Обработка ошибок
@@ -506,6 +521,198 @@ window.addEventListener('error', (e) => {
     console.error('Ошибка приложения:', e.error);
     utils.showNotification('Произошла ошибка. Попробуйте обновить страницу.', 'error');
 });
+
+// Мобильная поддержка и PWA
+const mobileSupport = {
+    // Определение мобильного устройства
+    isMobile: () => {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+               (window.innerWidth <= 768 && 'ontouchstart' in window);
+    },
+    
+    // Определение iOS
+    isIOS: () => {
+        return /iPad|iPhone|iPod/.test(navigator.userAgent);
+    },
+    
+    // Настройка PWA
+    setupPWA: () => {
+        // Service Worker регистрация
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then(registration => console.log('SW registered:', registration))
+                .catch(error => console.log('SW registration failed:', error));
+        }
+        
+        // Установка PWA
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            mobileSupport.showInstallButton();
+        });
+        
+        // Обработка установки
+        window.addEventListener('appinstalled', () => {
+            console.log('PWA установлено');
+            utils.showNotification('Чат установлен на устройство! 📱');
+        });
+    },
+    
+    // Показать кнопку установки
+    showInstallButton: () => {
+        if (!mobileSupport.isMobile()) return;
+        
+        const installBtn = document.createElement('button');
+        installBtn.className = 'install-btn';
+        installBtn.innerHTML = '📱 Установить приложение';
+        installBtn.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+            z-index: 1000;
+            animation: slideUp 0.3s ease-out;
+        `;
+        
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const result = await deferredPrompt.userChoice;
+                if (result.outcome === 'accepted') {
+                    console.log('Пользователь установил PWA');
+                }
+                deferredPrompt = null;
+                installBtn.remove();
+            }
+        });
+        
+        document.body.appendChild(installBtn);
+        
+        // Автоскрытие через 10 секунд
+        setTimeout(() => installBtn.remove(), 10000);
+    },
+    
+    // Touch-события для лучшего UX
+    setupTouchEvents: () => {
+        // Улучшенная прокрутка для iOS
+        if (mobileSupport.isIOS()) {
+            document.body.style.setProperty('-webkit-overflow-scrolling', 'touch');
+        }
+        
+        // Предотвращение двойного тапа для зума
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', (event) => {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+        
+        // Улучшенная обработка фокуса на инпутах
+        const messageInput = document.getElementById('messageInput');
+        if (messageInput && mobileSupport.isMobile()) {
+            messageInput.addEventListener('focus', () => {
+                // Прокрутка к инпуту на мобильных
+                setTimeout(() => {
+                    messageInput.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                }, 300);
+            });
+            
+            // Предотвращение зума при фокусе на iOS
+            if (mobileSupport.isIOS()) {
+                messageInput.addEventListener('touchstart', () => {
+                    messageInput.style.fontSize = '16px';
+                });
+            }
+        }
+        
+        // Swipe для закрытия эмодзи-пикера
+        const emojiPicker = document.getElementById('emojiPicker');
+        if (emojiPicker) {
+            let startY;
+            emojiPicker.addEventListener('touchstart', (e) => {
+                startY = e.touches[0].clientY;
+            });
+            
+            emojiPicker.addEventListener('touchmove', (e) => {
+                if (!startY) return;
+                const currentY = e.touches[0].clientY;
+                const diffY = startY - currentY;
+                
+                if (diffY < -50) { // Swipe вниз
+                    emojiPicker.classList.remove('show');
+                    startY = null;
+                }
+            });
+        }
+    },
+    
+    // Настройка виртуальной клавиатуры
+    setupVirtualKeyboard: () => {
+        if (!mobileSupport.isMobile()) return;
+        
+        const chatMessages = document.getElementById('chatMessages');
+        const inputContainer = document.querySelector('.message-input-container');
+        
+        // Обработка появления виртуальной клавиатуры
+        window.addEventListener('resize', () => {
+            if (document.activeElement.tagName === 'INPUT') {
+                setTimeout(() => {
+                    messageManager.scrollToBottom();
+                }, 150);
+            }
+        });
+        
+        // Visual Viewport API для современных браузеров
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', () => {
+                const viewport = window.visualViewport;
+                if (viewport.height < window.innerHeight * 0.75) {
+                    // Клавиатура показана
+                    document.body.style.setProperty('--keyboard-height', 
+                        `${window.innerHeight - viewport.height}px`);
+                } else {
+                    // Клавиатура скрыта
+                    document.body.style.removeProperty('--keyboard-height');
+                }
+            });
+        }
+    },
+    
+    // Инициализация всех мобильных функций
+    init: () => {
+        if (mobileSupport.isMobile()) {
+            console.log('Мобильное устройство обнаружено');
+            
+            // Добавляем класс для мобильных стилей
+            document.body.classList.add('mobile-device');
+            
+            if (mobileSupport.isIOS()) {
+                document.body.classList.add('ios-device');
+            }
+            
+            mobileSupport.setupPWA();
+            mobileSupport.setupTouchEvents();
+            mobileSupport.setupVirtualKeyboard();
+            
+            // Настройка тапа вместо ховера
+            document.addEventListener('touchstart', () => {}, true);
+        }
+    }
+};
 
 // Экспорт для использования в других файлах (если нужно)
 if (typeof module !== 'undefined' && module.exports) {
@@ -515,6 +722,7 @@ if (typeof module !== 'undefined' && module.exports) {
         utils,
         userManager,
         messageManager,
-        uiController
+        uiController,
+        mobileSupport
     };
 }

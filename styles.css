@@ -566,10 +566,26 @@ body {
     border-left-color: #f59e0b;
 }
 
-/* Адаптивность */
+/* Улучшенная мобильная поддержка */
 @media (max-width: 768px) {
+    .chat-container {
+        height: 100vh;
+        height: 100dvh; /* Динамическая высота viewport для мобильных */
+        margin: 0;
+        border-radius: 0;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+    
     .chat-header {
         border-radius: 0;
+        padding: max(env(safe-area-inset-top), 16px) 20px 16px 20px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
     }
     
     .header-content h1 {
@@ -580,22 +596,194 @@ body {
         font-size: 0.8rem;
     }
     
+    .chat-messages {
+        padding: 16px;
+        padding-bottom: max(env(safe-area-inset-bottom), 16px);
+        /* Прокрутка с инерцией на iOS */
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+    }
+    
     .message-content {
         max-width: 85%;
     }
     
+    .message-text {
+        font-size: 0.9rem;
+        padding: 10px 14px;
+        border-radius: 12px;
+        /* Улучшенная читаемость на мобильных */
+        line-height: 1.4;
+    }
+    
+    .message-input-container {
+        padding: 16px;
+        padding-bottom: max(env(safe-area-inset-bottom), 16px);
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        position: sticky;
+        bottom: 0;
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    
+    .input-wrapper {
+        border-radius: 24px;
+        padding: 4px 4px 4px 16px;
+        min-height: 48px; /* Минимальная высота для удобного нажатия */
+    }
+    
+    #messageInput {
+        font-size: 16px; /* Предотвращает зум на iOS */
+        padding: 12px 8px;
+        min-height: 24px;
+    }
+    
+    .emoji-btn, .send-btn {
+        width: 44px;
+        height: 44px;
+        /* Улучшенная область нажатия */
+        touch-action: manipulation;
+    }
+    
     .emoji-picker {
-        right: 10px;
-        left: 10px;
+        right: 16px;
+        left: 16px;
         width: auto;
+        bottom: 80px;
+        max-height: 40vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
     
     .emoji-grid {
         grid-template-columns: repeat(8, 1fr);
+        gap: 4px;
+    }
+    
+    .emoji {
+        padding: 12px 8px;
+        font-size: 1.1rem;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        /* Улучшенная область нажатия */
+        touch-action: manipulation;
     }
     
     .modal {
-        margin: 20px;
+        margin: 16px;
+        width: calc(100% - 32px);
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    .modal-content {
+        max-height: 60vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    #nameInput {
+        font-size: 16px; /* Предотвращает зум на iOS */
+        min-height: 48px;
+    }
+    
+    .join-btn {
+        min-height: 48px;
+        font-size: 16px;
+        touch-action: manipulation;
+    }
+    
+    .name-suggestion {
+        min-height: 36px;
+        font-size: 0.85rem;
+        padding: 8px 16px;
+        touch-action: manipulation;
+    }
+    
+    .mobile-connect-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+        touch-action: manipulation;
+    }
+}
+
+/* Поддержка iPhone X и новых моделей */
+@supports (padding: max(0px)) {
+    .chat-header {
+        padding-top: max(env(safe-area-inset-top), 16px);
+    }
+    
+    .message-input-container {
+        padding-bottom: max(env(safe-area-inset-bottom), 16px);
+    }
+}
+
+/* Дополнительные стили для очень маленьких экранов */
+@media (max-width: 480px) {
+    .header-content {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .user-info {
+        flex-direction: row;
+        gap: 12px;
+        font-size: 0.75rem;
+    }
+    
+    .message-avatar {
+        width: 32px;
+        height: 32px;
+        font-size: 0.7rem;
+    }
+    
+    .message-text {
+        font-size: 0.85rem;
+        padding: 8px 12px;
+    }
+    
+    .emoji-grid {
+        grid-template-columns: repeat(6, 1fr);
+    }
+}
+
+/* Горизонтальная ориентация на мобильных */
+@media (max-width: 768px) and (orientation: landscape) {
+    .chat-container {
+        height: 100vh;
+    }
+    
+    .chat-messages {
+        padding: 12px 16px;
+    }
+    
+    .message-input-container {
+        padding: 12px 16px;
+    }
+    
+    .emoji-picker {
+        max-height: 50vh;
+        bottom: 70px;
+    }
+    
+    .modal {
+        max-height: 85vh;
+    }
+}
+
+/* Темная тема для мобильных устройств */
+@media (prefers-color-scheme: dark) and (max-width: 768px) {
+    .message-input-container {
+        background: rgba(30, 30, 30, 0.95);
+        border-top-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .input-wrapper {
+        background: #374151;
+        border-color: rgba(255, 255, 255, 0.1);
     }
 }
 
@@ -621,4 +809,157 @@ body {
 .empty-state p {
     font-size: 0.9rem;
     opacity: 0.8;
+}
+
+/* Дополнительные анимации для PWA */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* PWA специфичные стили */
+.install-btn {
+    animation: pulse 2s infinite;
+    transition: all 0.3s ease;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.install-btn:hover {
+    transform: translateX(-50%) scale(1.05);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+/* Splash screen для PWA */
+.pwa-splash {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.pwa-splash.show {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.pwa-splash-logo {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    animation: bounce 1s infinite;
+}
+
+.pwa-splash-text {
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+/* Keyboard awareness */
+body[data-keyboard-visible="true"] {
+    padding-bottom: var(--keyboard-height, 0);
+}
+
+/* Enhanced mobile optimizations */
+@media (hover: none) and (pointer: coarse) {
+    /* Увеличиваем размеры для touch устройств */
+    .message-input button,
+    .emoji-btn,
+    .send-btn {
+        min-height: 48px;
+        min-width: 48px;
+    }
+    
+    /* Убираем hover эффекты на touch устройствах */
+    .message:hover {
+        transform: none;
+    }
+    
+    .emoji-btn:hover {
+        transform: none;
+        background: rgba(102, 126, 234, 0.1);
+    }
+    
+    /* Improved button feedback */
+    .message-input button:active,
+    .emoji-btn:active,
+    .send-btn:active {
+        transform: scale(0.95);
+        background: rgba(102, 126, 234, 0.2);
+    }
+}
+
+/* Orientation changes */
+@media (orientation: landscape) and (max-height: 500px) {
+    .chat-header {
+        padding: 0.5rem 1rem;
+    }
+    
+    .chat-header h1 {
+        font-size: 1.2rem;
+    }
+    
+    .chat-messages {
+        height: calc(100vh - 130px);
+    }
+    
+    .message-input-container {
+        padding: 0.5rem 1rem;
+    }
+}
+
+/* Notch support for iPhone X and newer */
+@supports (padding: max(0px)) {
+    .chat-header {
+        padding-top: max(1rem, env(safe-area-inset-top));
+        padding-left: max(1rem, env(safe-area-inset-left));
+        padding-right: max(1rem, env(safe-area-inset-right));
+    }
+    
+    .message-input-container {
+        padding-bottom: max(1rem, env(safe-area-inset-bottom));
+        padding-left: max(1rem, env(safe-area-inset-left));
+        padding-right: max(1rem, env(safe-area-inset-right));
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .message {
+        border: 1px solid #000;
+    }
+    
+    .message-input {
+        border: 2px solid #000;
+    }
+    
+    .send-btn {
+        border: 1px solid #000;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }
