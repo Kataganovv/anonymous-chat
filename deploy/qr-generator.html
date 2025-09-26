@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генератор QR-кода для чата</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .qr-generator {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #374151;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+        }
+
+        .url-input-section {
+            margin-bottom: 30px;
+        }
+
+        .url-input-section label {
+            display: block;
+            color: #374151;
+            font-weight: 500;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+
+        .url-input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        #urlInput {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: monospace;
+            background: white;
+            transition: border-color 0.2s ease;
+        }
+
+        #urlInput:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .generate-btn {
+            padding: 15px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+        }
+
+        .qr-display {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin: 30px 0;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .qr-code-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        #qrCanvas {
+            border-radius: 12px;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .qr-info {
+            color: #6b7280;
+            font-size: 0.9rem;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        .quick-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .quick-link {
+            padding: 15px;
+            background: #f8fafc;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            color: #374151;
+        }
+
+        .quick-link:hover {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .quick-link h3 {
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+
+        .quick-link p {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        .download-section {
+            margin-top: 30px;
+        }
+
+        .download-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            margin: 0 10px;
+            transition: all 0.2s ease;
+        }
+
+        .download-btn:hover {
+            background: #059669;
+            transform: scale(1.05);
+        }
+
+        .status {
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin: 10px 0;
+            display: inline-block;
+        }
+
+        .status.success {
+            background: rgba(16, 185, 129, 0.1);
+            color: #059669;
+            border: 2px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .status.info {
+            background: rgba(59, 130, 246, 0.1);
+            color: #1d4ed8;
+            border: 2px solid rgba(59, 130, 246, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .qr-generator {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .url-input-container {
+                flex-direction: column;
+            }
+
+            .quick-links {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="qr-generator">
+        <h1>🎯 QR-генератор для чата</h1>
+        <p class="subtitle">Создайте QR-код для любой ссылки</p>
+
+        <div class="url-input-section">
+            <label for="urlInput">Введите ссылку на ваш чат:</label>
+            <div class="url-input-container">
+                <input type="url" id="urlInput" placeholder="https://your-chat-link.com" />
+                <button class="generate-btn" onclick="generateQR()">Создать QR</button>
+            </div>
+        </div>
+
+        <div class="quick-links">
+            <div class="quick-link" onclick="setQuickUrl('localhost')">
+                <h3>💻 Локальный чат</h3>
+                <p>http://localhost:8000</p>
+            </div>
+            <div class="quick-link" onclick="detectCurrentUrl()">
+                <h3>🌐 Текущий сервер</h3>
+                <p>Автоопределение</p>
+            </div>
+            <div class="quick-link" onclick="setQuickUrl('demo')">
+                <h3>🎮 Демо чат</h3>
+                <p>Для демонстрации</p>
+            </div>
+        </div>
+
+        <div class="qr-display" id="qrDisplay" style="display: none;">
+            <div class="qr-code-container">
+                <canvas id="qrCanvas"></canvas>
+                <div class="qr-info">
+                    <strong>Готово!</strong><br>
+                    Поделитесь этим QR-кодом с друзьями<br>
+                    Они смогут отсканировать его и подключиться к чату
+                </div>
+            </div>
+            <div class="download-section">
+                <button class="download-btn" onclick="downloadQR()">📥 Скачать PNG</button>
+                <button class="download-btn" onclick="copyQRLink()">📋 Копировать ссылку</button>
+            </div>
+        </div>
+
+        <div id="status"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script>
+        let currentUrl = '';
+
+        // Автоматическое определение текущего URL при загрузке
+        window.addEventListener('DOMContentLoaded', () => {
+            detectCurrentUrl();
+            
+            // Проверяем наличие public_url.txt
+            checkPublicUrl();
+        });
+
+        // Проверка публичного URL
+        async function checkPublicUrl() {
+            try {
+                const response = await fetch('/public_url.txt');
+                if (response.ok) {
+                    const publicUrl = await response.text();
+                    if (publicUrl.trim()) {
+                        setUrl(publicUrl.trim());
+                        showStatus('🌍 Обнаружен публичный сервер!', 'success');
+                        return;
+                    }
+                }
+            } catch (e) {
+                // Файл не найден
+            }
+            
+            // Fallback на текущий URL
+            detectCurrentUrl();
+        }
+
+        // Определение текущего URL
+        function detectCurrentUrl() {
+            const protocol = window.location.protocol;
+            const hostname = window.location.hostname;
+            const port = window.location.port;
+            
+            let detectedUrl;
+            if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                detectedUrl = `${protocol}//${hostname}:${port || '8000'}/`;
+            } else {
+                detectedUrl = `${protocol}//${hostname}${port ? ':' + port : ''}/`;
+            }
+            
+            setUrl(detectedUrl);
+            showStatus('✅ URL автоматически определён', 'info');
+        }
+
+        // Установка быстрых URL
+        function setQuickUrl(type) {
+            switch(type) {
+                case 'localhost':
+                    setUrl('http://localhost:8000/');
+                    break;
+                case 'demo':
+                    setUrl('https://example.com/demo-chat');
+                    break;
+                default:
+                    detectCurrentUrl();
+            }
+        }
+
+        // Установка URL и автогенерация QR
+        function setUrl(url) {
+            document.getElementById('urlInput').value = url;
+            currentUrl = url;
+            generateQR();
+        }
+
+        // Генерация QR-кода
+        function generateQR() {
+            const urlInput = document.getElementById('urlInput');
+            const url = urlInput.value.trim();
+            
+            if (!url) {
+                showStatus('❌ Введите ссылку!', 'error');
+                return;
+            }
+
+            if (!isValidUrl(url)) {
+                showStatus('❌ Введите корректную ссылку!', 'error');
+                return;
+            }
+
+            currentUrl = url;
+            
+            // Генерируем QR-код
+            const canvas = document.getElementById('qrCanvas');
+            
+            QRCode.toCanvas(canvas, url, {
+                width: 280,
+                margin: 3,
+                color: {
+                    dark: '#374151',
+                    light: '#FFFFFF'
+                },
+                errorCorrectionLevel: 'M'
+            }, function (error) {
+                if (error) {
+                    showStatus('❌ Ошибка создания QR-кода', 'error');
+                    console.error(error);
+                } else {
+                    document.getElementById('qrDisplay').style.display = 'block';
+                    showStatus('✅ QR-код успешно создан!', 'success');
+                }
+            });
+        }
+
+        // Проверка валидности URL
+        function isValidUrl(string) {
+            try {
+                new URL(string);
+                return true;
+            } catch (_) {
+                return false;
+            }
+        }
+
+        // Скачивание QR-кода
+        function downloadQR() {
+            const canvas = document.getElementById('qrCanvas');
+            const link = document.createElement('a');
+            link.download = 'chat-qr-code.png';
+            link.href = canvas.toDataURL();
+            link.click();
+            
+            showStatus('📥 QR-код сохранён!', 'success');
+        }
+
+        // Копирование ссылки
+        function copyQRLink() {
+            navigator.clipboard.writeText(currentUrl).then(() => {
+                showStatus('📋 Ссылка скопирована!', 'success');
+            }).catch(() => {
+                // Fallback для старых браузеров
+                const input = document.getElementById('urlInput');
+                input.select();
+                document.execCommand('copy');
+                showStatus('📋 Ссылка скопирована!', 'success');
+            });
+        }
+
+        // Показ статуса
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+            
+            // Автоскрытие через 3 секунды
+            setTimeout(() => {
+                statusEl.textContent = '';
+                statusEl.className = '';
+            }, 3000);
+        }
+
+        // Enter для генерации
+        document.getElementById('urlInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                generateQR();
+            }
+        });
+
+        // Периодическая проверка public_url.txt
+        setInterval(checkPublicUrl, 30000);
+    </script>
+</body>
+</html>
