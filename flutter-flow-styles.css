@@ -1,0 +1,325 @@
+/* Flutter Flow Integration Styles */
+
+/* Дополнительные стили для лучшей интеграции с Flutter Flow */
+.flutter-flow-integration {
+    --primary-color: #667eea;
+    --secondary-color: #764ba2;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --error-color: #ef4444;
+    --text-primary: #374151;
+    --text-secondary: #6b7280;
+    --background-light: #f8fafc;
+    --border-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Flutter-style shadow */
+.flutter-shadow {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.flutter-shadow-md {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.flutter-shadow-lg {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Flutter-style материальные кнопки */
+.material-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.material-button:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.1);
+    opacity: 0;
+    transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.material-button:hover:before {
+    opacity: 1;
+}
+
+.material-button:active {
+    transform: scale(0.98);
+}
+
+/* Flutter-style input fields */
+.flutter-input {
+    width: 100%;
+    padding: 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 16px;
+    background: white;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.flutter-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Flutter-style cards */
+.flutter-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: var(--flutter-shadow);
+    border: 1px solid var(--border-color);
+}
+
+/* Анимации в стиле Flutter */
+@keyframes flutter-slide-in {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes flutter-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes flutter-scale-in {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Flutter Hero animation style */
+.hero-animation {
+    animation: flutter-scale-in 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Flutter-style списки */
+.flutter-list-item {
+    padding: 16px;
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.flutter-list-item:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+.flutter-list-item:last-child {
+    border-bottom: none;
+}
+
+/* Flutter-style чипы */
+.flutter-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 16px;
+    background: var(--background-light);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.flutter-chip:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: scale(1.05);
+}
+
+/* Flutter-style снэкбары */
+.flutter-snackbar {
+    position: fixed;
+    bottom: 24px;
+    left: 24px;
+    right: 24px;
+    background: #323232;
+    color: white;
+    padding: 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    z-index: 1000;
+    animation: flutter-slide-in 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (min-width: 768px) {
+    .flutter-snackbar {
+        left: auto;
+        right: 24px;
+        max-width: 400px;
+    }
+}
+
+/* Flutter-style прогресс бары */
+.flutter-progress {
+    width: 100%;
+    height: 4px;
+    background: rgba(102, 126, 234, 0.2);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.flutter-progress-bar {
+    height: 100%;
+    background: var(--primary-color);
+    border-radius: 2px;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Flutter-style диалоги */
+.flutter-dialog {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
+    animation: flutter-scale-in 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.flutter-dialog-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+}
+
+.flutter-dialog-content {
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 24px;
+}
+
+.flutter-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/* Утилитарные классы в стиле Flutter */
+.flutter-text-primary {
+    color: var(--text-primary);
+}
+
+.flutter-text-secondary {
+    color: var(--text-secondary);
+}
+
+.flutter-bg-primary {
+    background-color: var(--primary-color);
+}
+
+.flutter-bg-secondary {
+    background-color: var(--secondary-color);
+}
+
+.flutter-rounded {
+    border-radius: 8px;
+}
+
+.flutter-rounded-full {
+    border-radius: 9999px;
+}
+
+/* Анимации для состояний загрузки */
+.flutter-loading {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border: 3px solid rgba(102, 126, 234, 0.2);
+    border-top: 3px solid var(--primary-color);
+    border-radius: 50%;
+    animation: flutter-spin 1s linear infinite;
+}
+
+@keyframes flutter-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Тёмная тема для Flutter Flow */
+@media (prefers-color-scheme: dark) {
+    .chat-container {
+        background: rgba(30, 30, 30, 0.95);
+        color: #f3f4f6;
+    }
+    
+    .chat-messages {
+        background: transparent;
+    }
+    
+    .message-text {
+        background: #374151;
+        color: #f3f4f6;
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .message.own .message-text {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .input-wrapper {
+        background: #374151;
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    #messageInput {
+        color: #f3f4f6;
+    }
+    
+    #messageInput::placeholder {
+        color: #9ca3af;
+    }
+    
+    .emoji-picker {
+        background: #374151;
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .modal {
+        background: #1f2937;
+        color: #f3f4f6;
+    }
+    
+    #nameInput {
+        background: #374151;
+        border-color: rgba(255, 255, 255, 0.1);
+        color: #f3f4f6;
+    }
+}

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Анонимный чат - Бесплатное общение онлайн</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Бесплатный анонимный чат для общения без регистрации. Выберите псевдоним и начните общение прямо сейчас!">
+    <meta name="keywords" content="анонимный чат, бесплатный чат, общение онлайн, чат без регистрации, веб чат">
+    <meta name="author" content="katagan.99@gmail.com">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://katagan99.github.io/anonymous-chat/">
+    <meta property="og:title" content="Анонимный чат - Бесплатное общение онлайн">
+    <meta property="og:description" content="Бесплатный анонимный чат для общения без регистрации. Выберите псевдоним и начните общение прямо сейчас!">
+    <meta property="og:image" content="https://katagan99.github.io/anonymous-chat/og-image.png">
+    <meta property="og:site_name" content="Анонимный чат">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://katagan99.github.io/anonymous-chat/">
+    <meta property="twitter:title" content="Анонимный чат - Бесплатное общение онлайн">
+    <meta property="twitter:description" content="Бесплатный анонимный чат для общения без регистрации. Выберите псевдоним и начните общение прямо сейчас!">
+    <meta property="twitter:image" content="https://katagan99.github.io/anonymous-chat/og-image.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- PWA -->
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Анонимный чат">
+    
+    <!-- Performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="header-content">
+                <i class="fas fa-comments"></i>
+                <h1>Анонимный чат</h1>
+                <div class="user-info">
+                    <span class="user-name" id="userName">Гость</span>
+                    <div class="online-count">
+                        <i class="fas fa-circle online-dot"></i>
+                        <span id="onlineCount">0</span> онлайн
+                    </div>
+                    <a href="/connect.html" class="mobile-connect-btn" title="Подключить телефон">
+                        <i class="fas fa-mobile-alt"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <!-- Сообщения будут добавлены здесь -->
+        </div>
+
+        <div class="message-input-container">
+            <div class="input-wrapper">
+                <input 
+                    type="text" 
+                    id="messageInput" 
+                    placeholder="Введите сообщение..."
+                    maxlength="500"
+                >
+                <div class="input-actions">
+                    <button id="emojiBtn" class="emoji-btn" title="Эмодзи">
+                        😀
+                    </button>
+                    <button id="sendBtn" class="send-btn" title="Отправить">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="emoji-picker" id="emojiPicker">
+                <div class="emoji-grid">
+                    <span class="emoji">😀</span>
+                    <span class="emoji">😂</span>
+                    <span class="emoji">🥰</span>
+                    <span class="emoji">😍</span>
+                    <span class="emoji">🤔</span>
+                    <span class="emoji">😎</span>
+                    <span class="emoji">😊</span>
+                    <span class="emoji">😔</span>
+                    <span class="emoji">😱</span>
+                    <span class="emoji">👍</span>
+                    <span class="emoji">👎</span>
+                    <span class="emoji">❤️</span>
+                    <span class="emoji">💯</span>
+                    <span class="emoji">🔥</span>
+                    <span class="emoji">⭐</span>
+                    <span class="emoji">💡</span>
+                    <span class="emoji">🎉</span>
+                    <span class="emoji">🚀</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator">
+            <span class="typing-text">Кто-то печатает...</span>
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для настройки имени пользователя -->
+    <div class="modal-overlay" id="nameModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Добро пожаловать в анонимный чат!</h2>
+            </div>
+            <div class="modal-content">
+                <p>Выберите свой псевдоним:</p>
+                <input type="text" id="nameInput" placeholder="Ваш псевдоним" maxlength="20">
+                <div class="random-names">
+                    <p>Или выберите случайное имя:</p>
+                    <div class="name-suggestions" id="nameSuggestions"></div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button id="joinChatBtn" class="join-btn">Войти в чат</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Уведомления -->
+    <div class="notifications" id="notifications"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>

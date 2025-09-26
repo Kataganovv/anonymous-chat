@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Подключение к чату</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .connection-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .logo {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #374151;
+            font-size: 2rem;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+        }
+
+        .qr-container {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            margin: 30px auto;
+            display: inline-block;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .qr-code {
+            width: 200px;
+            height: 200px;
+        }
+
+        .url-section {
+            margin: 30px 0;
+        }
+
+        .url-label {
+            color: #374151;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .url-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f8fafc;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 15px;
+        }
+
+        .url-input {
+            flex: 1;
+            border: none;
+            background: none;
+            font-size: 16px;
+            font-family: monospace;
+            color: #374151;
+            outline: none;
+        }
+
+        .copy-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .copy-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .instructions {
+            text-align: left;
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .instructions h3 {
+            color: #374151;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .instructions ol {
+            color: #6b7280;
+            line-height: 1.6;
+            padding-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 8px;
+        }
+
+        .network-info {
+            background: rgba(16, 185, 129, 0.1);
+            border: 2px solid rgba(16, 185, 129, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin: 20px 0;
+        }
+
+        .network-info h4 {
+            color: #059669;
+            font-size: 1rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .network-info p {
+            color: #047857;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(16, 185, 129, 0.1);
+            color: #059669;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin: 10px 0;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .connection-card {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            .qr-code {
+                width: 150px;
+                height: 150px;
+            }
+
+            .url-container {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .url-input {
+                text-align: center;
+                font-size: 14px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="connection-card">
+        <div class="logo">💬</div>
+        <h1>Анонимный чат</h1>
+        <p class="subtitle">Подключение с мобильных устройств</p>
+
+        <div class="status-indicator">
+            <div class="status-dot"></div>
+            Сервер активен
+        </div>
+
+        <div class="qr-container">
+            <div id="qrCode" class="qr-code"></div>
+        </div>
+
+        <div class="url-section">
+            <div class="url-label">Ссылка для подключения:</div>
+            <div class="url-container">
+                <input type="text" class="url-input" id="chatUrl" readonly>
+                <button class="copy-btn" onclick="copyToClipboard()">📋 Копировать</button>
+            </div>
+        </div>
+
+        <div class="network-info">
+            <h4>🌐 Сетевая информация</h4>
+            <p>IP-адрес: <strong id="ipAddress"></strong></p>
+            <p>Порт: <strong>8000</strong></p>
+        </div>
+
+        <div class="instructions">
+            <h3>📱 Как подключиться с телефона:</h3>
+            <ol>
+                <li>Убедитесь, что телефон подключен к той же Wi-Fi сети</li>
+                <li>Отсканируйте QR-код камерой телефона</li>
+                <li>Или скопируйте ссылку и откройте в браузере</li>
+                <li>Выберите псевдоним и начните общение!</li>
+            </ol>
+        </div>
+
+        <div class="action-buttons">
+            <a href="/" class="btn btn-primary">
+                💻 Открыть чат на компьютере
+            </a>
+            <button class="btn btn-secondary" onclick="refreshQR()">
+                🔄 Обновить QR-код
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script>
+        // Автоматически определяем тип подключения и создаем URL
+        const hostname = window.location.hostname;
+        const port = window.location.port;
+        const protocol = window.location.protocol;
+        
+        let chatUrl;
+        let connectionType;
+        let displayAddress;
+        
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+            // Локальное подключение
+            chatUrl = `${protocol}//${hostname}:${port || '8000'}/`;
+            connectionType = '🏠 Локальная сеть';
+            displayAddress = `${hostname}:${port || '8000'}`;
+        } else if (hostname.includes('.serveo.net') || hostname.includes('.lhr.life') || hostname.includes('.ngrok.io') || hostname.includes('.ngrok-free.app')) {
+            // Публичное подключение через туннель
+            chatUrl = `${protocol}//${hostname}${port ? ':' + port : ''}/`;
+            connectionType = '🌍 Публичный доступ';
+            displayAddress = hostname;
+        } else {
+            // Локальная сеть (IP-адрес)
+            chatUrl = `${protocol}//${hostname}:${port || '8000'}/`;
+            connectionType = '🏠 Локальная сеть';
+            displayAddress = `${hostname}:${port || '8000'}`;
+        }
+        
+        // Обновляем элементы страницы
+        document.getElementById('ipAddress').textContent = displayAddress;
+        document.getElementById('chatUrl').value = chatUrl;
+        
+        // Обновляем заголовок в зависимости от типа подключения
+        if (connectionType === '🌍 Публичный доступ') {
+            document.querySelector('h1').textContent = 'Публичный анонимный чат';
+            document.querySelector('.subtitle').textContent = 'Подключение из любой точки мира';
+            document.querySelector('.network-info h4').innerHTML = '🌍 Публичный сервер';
+            document.querySelector('.network-info p').innerHTML = `Адрес: <strong>${displayAddress}</strong><br>Доступен всем в интернете`;
+        }
+        
+        // Генерируем QR-код
+        function generateQR() {
+            QRCode.toCanvas(document.getElementById('qrCode'), chatUrl, {
+                width: 200,
+                margin: 2,
+                color: {
+                    dark: '#374151',
+                    light: '#FFFFFF'
+                }
+            }, function (error) {
+                if (error) {
+                    console.error('Ошибка генерации QR-кода:', error);
+                    document.getElementById('qrCode').innerHTML = 
+                        '<div style="display: flex; align-items: center; justify-content: center; height: 200px; color: #6b7280;">Ошибка генерации QR-кода</div>';
+                }
+            });
+        }
+        
+        // Копирование ссылки в буфер обмена
+        function copyToClipboard() {
+            const urlInput = document.getElementById('chatUrl');
+            urlInput.select();
+            urlInput.setSelectionRange(0, 99999); // Для мобильных устройств
+            
+            navigator.clipboard.writeText(chatUrl).then(() => {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Скопировано!';
+                btn.style.background = '#10b981';
+                
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '';
+                }, 2000);
+            }).catch(() => {
+                // Fallback для старых браузеров
+                document.execCommand('copy');
+                alert('Ссылка скопирована в буфер обмена!');
+            });
+        }
+        
+        // Обновление QR-кода
+        function refreshQR() {
+            generateQR();
+            
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = '✅ Обновлено!';
+            
+            setTimeout(() => {
+                btn.textContent = originalText;
+            }, 1500);
+        }
+        
+        // Проверка публичного URL из файла
+        async function checkPublicUrl() {
+            try {
+                const response = await fetch('/public_url.txt');
+                if (response.ok) {
+                    const publicUrl = await response.text();
+                    if (publicUrl.trim()) {
+                        chatUrl = publicUrl.trim();
+                        document.getElementById('chatUrl').value = chatUrl;
+                        
+                        // Обновляем информацию о сервере
+                        document.querySelector('h1').textContent = 'Публичный анонимный чат';
+                        document.querySelector('.subtitle').textContent = 'Доступен из любой точки мира';
+                        document.querySelector('.network-info h4').innerHTML = '🌍 Публичный сервер';
+                        
+                        const urlObj = new URL(chatUrl);
+                        document.querySelector('.network-info p').innerHTML = `Адрес: <strong>${urlObj.hostname}</strong><br>Доступен всем в интернете`;
+                        document.getElementById('ipAddress').textContent = urlObj.hostname;
+                        
+                        generateQR();
+                        
+                        // Показываем уведомление о публичном доступе
+                        showPublicNotification();
+                    }
+                }
+            } catch (e) {
+                // Файл не найден или ошибка - используем локальные настройки
+            }
+        }
+        
+        // Показываем уведомление о публичном доступе
+        function showPublicNotification() {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                color: white;
+                padding: 16px 20px;
+                border-radius: 12px;
+                box-shadow: 0 8px 32px rgba(16, 185, 129, 0.3);
+                z-index: 1000;
+                font-weight: 500;
+                animation: slideIn 0.3s ease-out;
+                max-width: 300px;
+            `;
+            notification.innerHTML = '🌍 Сервер доступен публично! Поделитесь ссылкой с друзьями.';
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideIn 0.3s ease-out reverse';
+                setTimeout(() => notification.remove(), 300);
+            }, 5000);
+        }
+        
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Сначала проверяем публичный URL
+            await checkPublicUrl();
+            
+            // Затем генерируем QR-код
+            generateQR();
+            
+            // Проверяем доступность сервера каждые 10 секунд
+            setInterval(() => {
+                fetch('/')
+                    .then(() => {
+                        document.querySelector('.status-indicator').style.display = 'inline-flex';
+                    })
+                    .catch(() => {
+                        document.querySelector('.status-indicator').style.display = 'none';
+                    });
+            }, 10000);
+            
+            // Проверяем обновления публичного URL каждые 30 секунд
+            setInterval(checkPublicUrl, 30000);
+        });
+    </script>
+</body>
+</html>

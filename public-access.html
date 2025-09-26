@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Публичный доступ к чату</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .connection-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .logo {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #374151;
+            font-size: 2rem;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+        }
+
+        .qr-container {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            margin: 30px auto;
+            display: inline-block;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .qr-code {
+            width: 200px;
+            height: 200px;
+        }
+
+        .url-section {
+            margin: 30px 0;
+        }
+
+        .url-label {
+            color: #374151;
+            font-weight: 500;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .url-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f8fafc;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 15px;
+        }
+
+        .url-input {
+            flex: 1;
+            border: none;
+            background: none;
+            font-size: 14px;
+            font-family: monospace;
+            color: #374151;
+            outline: none;
+            text-align: center;
+        }
+
+        .copy-btn, .share-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .copy-btn:hover, .share-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .tunnel-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .tunnel-option {
+            background: #f8fafc;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .tunnel-option:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .tunnel-option.active {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .tunnel-option h3 {
+            margin: 0 0 8px 0;
+            font-size: 1.1rem;
+            color: #374151;
+        }
+
+        .tunnel-option p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #6b7280;
+            line-height: 1.4;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin: 10px 0;
+        }
+
+        .status-connecting {
+            background: rgba(251, 191, 36, 0.1);
+            color: #d97706;
+        }
+
+        .status-active {
+            background: rgba(16, 185, 129, 0.1);
+            color: #059669;
+        }
+
+        .status-error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-connecting .status-dot {
+            background: #f59e0b;
+        }
+
+        .status-active .status-dot {
+            background: #10b981;
+        }
+
+        .status-error .status-dot {
+            background: #ef4444;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .instructions {
+            text-align: left;
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .instructions h3 {
+            color: #374151;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .instructions ol {
+            color: #6b7280;
+            line-height: 1.6;
+            padding-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 8px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .connection-card {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            .qr-code {
+                width: 150px;
+                height: 150px;
+            }
+
+            .tunnel-options {
+                grid-template-columns: 1fr;
+            }
+
+            .url-container {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+
+            .url-input {
+                text-align: center;
+                font-size: 12px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="connection-card">
+        <div class="logo">🌍</div>
+        <h1>Публичный доступ к чату</h1>
+        <p class="subtitle">Подключайтесь из любой точки мира</p>
+
+        <div id="statusIndicator" class="status-indicator status-connecting">
+            <div class="status-dot"></div>
+            <span class="loading"></span>
+            Создание туннеля...
+        </div>
+
+        <div class="tunnel-options">
+            <div class="tunnel-option" onclick="createTunnel('cloudflare')">
+                <h3>☁️ Cloudflare Tunnel</h3>
+                <p>Быстрый и надежный. Автоматически генерирует защищенную ссылку.</p>
+            </div>
+            <div class="tunnel-option" onclick="createTunnel('serveo')">
+                <h3>🚀 Serveo</h3>
+                <p>Простой SSH туннель. Работает через терминал.</p>
+            </div>
+        </div>
+
+        <div id="qrSection" style="display: none;">
+            <div class="qr-container">
+                <div id="qrCode" class="qr-code"></div>
+            </div>
+
+            <div class="url-section">
+                <div class="url-label">
+                    🔗 Публичная ссылка:
+                </div>
+                <div class="url-container">
+                    <input type="text" class="url-input" id="publicUrl" readonly>
+                    <button class="copy-btn" onclick="copyToClipboard()">
+                        📋 Копировать
+                    </button>
+                    <button class="share-btn" onclick="shareUrl()">
+                        📤 Поделиться
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>🚀 Как создать публичный доступ:</h3>
+            <ol>
+                <li><strong>Выберите сервис</strong> для создания туннеля выше</li>
+                <li><strong>Запустите команду</strong> в терминале (команда появится после выбора)</li>
+                <li><strong>Скопируйте ссылку</strong> или отсканируйте QR-код</li>
+                <li><strong>Поделитесь с друзьями</strong> - теперь они могут подключиться из любого места!</li>
+            </ol>
+        </div>
+
+        <div id="terminalCommand" style="display: none;">
+            <div class="url-section">
+                <div class="url-label">
+                    💻 Выполните эту команду в терминале:
+                </div>
+                <div class="url-container">
+                    <input type="text" class="url-input" id="commandText" readonly style="font-family: monospace; font-size: 12px;">
+                    <button class="copy-btn" onclick="copyCommand()">
+                        📋 Копировать команду
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <a href="/" class="btn btn-primary">
+                💻 Открыть чат локально
+            </a>
+            <button class="btn btn-secondary" onclick="checkTunnelStatus()">
+                🔄 Проверить статус
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script>
+        let selectedTunnel = null;
+        let publicUrl = null;
+
+        // Создание туннеля
+        function createTunnel(type) {
+            selectedTunnel = type;
+            
+            // Убираем активный класс со всех опций
+            document.querySelectorAll('.tunnel-option').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Добавляем активный класс к выбранной опции
+            event.target.closest('.tunnel-option').classList.add('active');
+            
+            let command = '';
+            let description = '';
+            
+            if (type === 'cloudflare') {
+                command = './cloudflare_tunnel.sh';
+                description = 'Cloudflare Tunnel';
+                
+                // Показываем команду для cloudflare
+                showTerminalCommand(command);
+                
+            } else if (type === 'serveo') {
+                command = 'ssh -R 80:localhost:8000 serveo.net';
+                description = 'Serveo SSH Tunnel';
+                
+                // Показываем команду для serveo
+                showTerminalCommand(command);
+            }
+            
+            updateStatus('connecting', `Создание ${description}...`);
+        }
+
+        // Показать команду для терминала
+        function showTerminalCommand(command) {
+            document.getElementById('commandText').value = command;
+            document.getElementById('terminalCommand').style.display = 'block';
+        }
+
+        // Обновление статуса
+        function updateStatus(status, message) {
+            const indicator = document.getElementById('statusIndicator');
+            indicator.className = `status-indicator status-${status}`;
+            
+            let content = '<div class="status-dot"></div>';
+            if (status === 'connecting') {
+                content += '<span class="loading"></span>';
+            }
+            content += message;
+            
+            indicator.innerHTML = content;
+        }
+
+        // Показать QR-код и URL
+        function showPublicAccess(url) {
+            publicUrl = url;
+            document.getElementById('publicUrl').value = url;
+            
+            // Генерируем QR-код
+            QRCode.toCanvas(document.getElementById('qrCode'), url, {
+                width: 200,
+                margin: 2,
+                color: {
+                    dark: '#374151',
+                    light: '#FFFFFF'
+                }
+            });
+            
+            document.getElementById('qrSection').style.display = 'block';
+            updateStatus('active', 'Туннель активен! Можете делиться ссылкой 🎉');
+        }
+
+        // Копирование ссылки
+        function copyToClipboard() {
+            const urlInput = document.getElementById('publicUrl');
+            urlInput.select();
+            navigator.clipboard.writeText(publicUrl).then(() => {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Скопировано!';
+                btn.style.background = '#10b981';
+                
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '';
+                }, 2000);
+            });
+        }
+
+        // Копирование команды
+        function copyCommand() {
+            const commandInput = document.getElementById('commandText');
+            commandInput.select();
+            navigator.clipboard.writeText(commandInput.value).then(() => {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Скопировано!';
+                btn.style.background = '#10b981';
+                
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '';
+                }, 2000);
+            });
+        }
+
+        // Поделиться ссылкой
+        function shareUrl() {
+            if (navigator.share && publicUrl) {
+                navigator.share({
+                    title: 'Анонимный чат',
+                    text: 'Присоединяйтесь к анонимному чату!',
+                    url: publicUrl
+                });
+            } else {
+                copyToClipboard();
+            }
+        }
+
+        // Проверка статуса туннеля
+        function checkTunnelStatus() {
+            if (publicUrl) {
+                fetch(publicUrl)
+                    .then(response => {
+                        if (response.ok) {
+                            updateStatus('active', 'Туннель работает отлично! 🎉');
+                        } else {
+                            updateStatus('error', 'Туннель недоступен. Проверьте подключение.');
+                        }
+                    })
+                    .catch(() => {
+                        updateStatus('error', 'Не удается подключиться к туннелю.');
+                    });
+            } else {
+                updateStatus('error', 'Сначала создайте туннель.');
+            }
+        }
+
+        // Симуляция для демонстрации (замените на реальную логику)
+        function simulatePublicUrl() {
+            setTimeout(() => {
+                // Это пример - в реальности URL будет получен от выбранного сервиса
+                const exampleUrl = 'https://abc123.trycloudflare.com';
+                showPublicAccess(exampleUrl);
+            }, 3000);
+        }
+
+        // Автоматическая проверка локального сервера
+        function checkLocalServer() {
+            fetch('/')
+                .then(() => {
+                    console.log('Локальный сервер работает');
+                })
+                .catch(() => {
+                    updateStatus('error', 'Локальный сервер не запущен. Запустите сначала ./start_server.sh');
+                });
+        }
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', () => {
+            checkLocalServer();
+            
+            // Проверяем URL параметры для автоматического отображения публичного URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const tunnelUrl = urlParams.get('url');
+            if (tunnelUrl) {
+                showPublicAccess(tunnelUrl);
+            }
+        });
+    </script>
+</body>
+</html>

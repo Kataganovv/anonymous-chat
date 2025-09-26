@@ -1,0 +1,25 @@
+{
+  "name": "anonymous-chat-app",
+  "version": "1.0.0",
+  "description": "Анонимный чат - веб-приложение для Flutter Flow",
+  "homepage": "https://katagan99.github.io/anonymous-chat",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo 'Static site - no build needed'",
+    "start": "python3 -m http.server 8000",
+    "dev": "python3 -m http.server 8000"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/katagan99/anonymous-chat.git"
+  },
+  "keywords": ["chat", "anonymous", "real-time", "web-app", "flutter-flow"],
+  "author": "katagan.99@gmail.com",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "bugs": {
+    "url": "https://github.com/katagan99/anonymous-chat/issues"
+  }
+}
