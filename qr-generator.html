@@ -231,8 +231,9 @@
         <div class="url-input-section">
             <label for="urlInput">Введите ссылку на ваш чат:</label>
             <div class="url-input-container">
-                <input type="url" id="urlInput" placeholder="https://your-chat-link.com" />
+                <input type="url" id="urlInput" placeholder="https://katagan-chat.surge.sh" />
                 <button class="generate-btn" onclick="generateQR()">Создать QR</button>
+                <button class="generate-btn" onclick="checkAndReloadQR()" style="background: #f59e0b; margin-left: 5px;" title="Диагностика QR">🔧</button>
             </div>
         </div>
 
@@ -241,13 +242,13 @@
                 <h3>💻 Локальный чат</h3>
                 <p>http://localhost:8000</p>
             </div>
-            <div class="quick-link" onclick="detectCurrentUrl()">
+            <div class="quick-link" onclick="setQuickUrl('current')">
                 <h3>🌐 Текущий сервер</h3>
                 <p>Автоопределение</p>
             </div>
             <div class="quick-link" onclick="setQuickUrl('demo')">
-                <h3>🎮 Демо чат</h3>
-                <p>Для демонстрации</p>
+                <h3>💬 Публичный чат</h3>
+                <p>katagan-chat.surge.sh</p>
             </div>
         </div>
 
@@ -270,15 +271,39 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js" integrity="sha512-SCsNJ5TulRUOgUh2QsGl2TGaKMqfP1dmC7HEnoMNqx5y8JIyWKRqyJbGKhtAYFlOgAh2SxXRZOfDpKPxB5jPSw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script>
         let currentUrl = '';
+        let qrLibraryLoaded = false;
+
+        // Проверяем загрузку библиотеки QR кода
+        function checkQRLibrary() {
+            if (typeof QRCode !== 'undefined') {
+                qrLibraryLoaded = true;
+                console.log('QR библиотека загружена успешно');
+                return true;
+            }
+            console.error('QR библиотека не загружена');
+            return false;
+        }
 
         // Автоматическое определение текущего URL при загрузке
         window.addEventListener('DOMContentLoaded', () => {
-            detectCurrentUrl();
-            
-            // Проверяем наличие public_url.txt
-            checkPublicUrl();
+            // Ждем немного для загрузки библиотек
+            setTimeout(() => {
+                checkQRLibrary();
+                detectCurrentUrl();
+                
+                // Проверяем наличие public_url.txt
+                checkPublicUrl();
+                
+                // Автоматически генерируем QR для основного чата
+                const chatUrl = window.location.origin;
+                if (chatUrl && isValidUrl(chatUrl)) {
+                    document.getElementById('urlInput').value = chatUrl;
+                    generateQR();
+                }
+            }, 1000);
         });
 
         // Проверка публичного URL
@@ -325,7 +350,10 @@
                     setUrl('http://localhost:8000/');
                     break;
                 case 'demo':
-                    setUrl('https://example.com/demo-chat');
+                    setUrl('https://katagan-chat.surge.sh/');
+                    break;
+                case 'current':
+                    setUrl(window.location.origin + '/');
                     break;
                 default:
                     detectCurrentUrl();
@@ -354,28 +382,51 @@
                 return;
             }
 
+            // Проверяем наличие библиотеки QR
+            if (!checkQRLibrary()) {
+                showStatus('❌ Библиотека QR-кода не загружена. Перезагрузите страницу.', 'error');
+                return;
+            }
+
             currentUrl = url;
             
-            // Генерируем QR-код
-            const canvas = document.getElementById('qrCanvas');
-            
-            QRCode.toCanvas(canvas, url, {
-                width: 280,
-                margin: 3,
-                color: {
-                    dark: '#374151',
-                    light: '#FFFFFF'
-                },
-                errorCorrectionLevel: 'M'
-            }, function (error) {
-                if (error) {
-                    showStatus('❌ Ошибка создания QR-кода', 'error');
-                    console.error(error);
-                } else {
-                    document.getElementById('qrDisplay').style.display = 'block';
-                    showStatus('✅ QR-код успешно создан!', 'success');
-                }
-            });
+            try {
+                // Генерируем QR-код
+                const canvas = document.getElementById('qrCanvas');
+                
+                // Очищаем предыдущий QR код
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                showStatus('🔄 Генерируем QR-код...', 'info');
+                
+                QRCode.toCanvas(canvas, url, {
+                    width: 280,
+                    margin: 3,
+                    color: {
+                        dark: '#374151',
+                        light: '#FFFFFF'
+                    },
+                    errorCorrectionLevel: 'M'
+                }, function (error) {
+                    if (error) {
+                        showStatus('❌ Ошибка создания QR-кода: ' + error.message, 'error');
+                        console.error('QR Generation Error:', error);
+                    } else {
+                        document.getElementById('qrDisplay').style.display = 'block';
+                        showStatus('✅ QR-код успешно создан!', 'success');
+                        
+                        // Скроллим к QR коду
+                        document.getElementById('qrDisplay').scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'center' 
+                        });
+                    }
+                });
+            } catch (error) {
+                showStatus('❌ Критическая ошибка: ' + error.message, 'error');
+                console.error('Critical QR Error:', error);
+            }
         }
 
         // Проверка валидности URL
@@ -423,6 +474,32 @@
                 statusEl.textContent = '';
                 statusEl.className = '';
             }, 3000);
+        }
+
+        // Диагностика и перезагрузка QR библиотеки
+        function checkAndReloadQR() {
+            showStatus('🔍 Проверяем библиотеку QR...', 'info');
+            
+            console.log('QRCode доступен:', typeof QRCode !== 'undefined');
+            console.log('Canvas элемент:', document.getElementById('qrCanvas'));
+            
+            if (typeof QRCode === 'undefined') {
+                showStatus('❌ QR библиотека не загружена. Перезагружаем...', 'error');
+                
+                // Перезагружаем библиотеку
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js';
+                script.onload = () => {
+                    showStatus('✅ QR библиотека перезагружена!', 'success');
+                    qrLibraryLoaded = true;
+                };
+                script.onerror = () => {
+                    showStatus('❌ Не удалось загрузить QR библиотеку', 'error');
+                };
+                document.head.appendChild(script);
+            } else {
+                showStatus('✅ QR библиотека работает корректно!', 'success');
+            }
         }
 
         // Enter для генерации
