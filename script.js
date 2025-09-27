@@ -181,26 +181,33 @@ const messageManager = {
     sendMessage: (text) => {
         if (!text.trim() || !state.currentUser) return false;
         
-        const message = {
-            id: utils.generateId(),
-            text: text.trim(),
-            author: state.currentUser.name,
-            userId: state.currentUser.id,
-            color: state.currentUser.color,
-            timestamp: new Date().toISOString(),
-            type: 'user'
-        };
-        
-        // В реальном приложении здесь был бы отправка на сервер
-        // Пока добавляем сообщение локально
-        messageManager.addMessage(message);
-        
-        // Симулируем получение сообщения другими пользователями
-        setTimeout(() => {
-            chatSimulation.simulateResponse();
-        }, Math.random() * 3000 + 1000);
-        
-        return true;
+        // Проверяем подключение к WebSocket
+        if (typeof window.wsManager !== 'undefined' && window.wsManager.isConnected) {
+            // Отправляем через WebSocket
+            return realChatManager.sendMessage(text.trim());
+        } else {
+            // Fallback к локальному сообщению (симуляция)
+            const message = {
+                id: utils.generateId(),
+                text: text.trim(),
+                author: state.currentUser.name,
+                userId: state.currentUser.id,
+                color: state.currentUser.color,
+                timestamp: new Date().toISOString(),
+                type: 'user'
+            };
+            
+            messageManager.addMessage(message);
+            
+            // Симулируем ответ
+            setTimeout(() => {
+                if (typeof chatSimulation !== 'undefined') {
+                    chatSimulation.simulateResponse();
+                }
+            }, Math.random() * 3000 + 1000);
+            
+            return true;
+        }
     }
 };
 
@@ -474,9 +481,150 @@ const uiController = {
     }
 };
 
+// Реальный чат менеджер
+const realChatManager = {
+    init() {
+        // Проверяем доступность WebSocket менеджера
+        if (typeof window.wsManager === 'undefined') {
+            console.warn('⚠️ WebSocket менеджер не найден, используем симуляцию');
+            this.fallbackToSimulation();
+            return;
+        }
+        
+        console.log('🌐 Инициализация реального чата...');
+        
+        // Подписываемся на события WebSocket
+        window.wsManager.onMessage((type, data) => {
+            switch(type) {
+                case 'message':
+                    this.handleMessage(data);
+                    break;
+                case 'history':
+                    this.handleHistory(data);
+                    break;
+                case 'user_typing':
+                    typingManager.showTyping(data.userName);
+                    break;
+                case 'user_stop_typing':
+                    typingManager.hideTyping();
+                    break;
+            }
+        });
+        
+        window.wsManager.onStatus((type, data) => {
+            switch(type) {
+                case 'connected':
+                    this.handleConnected();
+                    break;
+                case 'disconnected':
+                    this.handleDisconnected();
+                    break;
+                case 'connection_error':
+                    this.handleConnectionError();
+                    break;
+                case 'online_count':
+                    this.handleOnlineCount(data);
+                    break;
+                case 'server_error':
+                    this.handleServerError(data);
+                    break;
+            }
+        });
+    },
+    
+    handleMessage(message) {
+        messageManager.addMessage(message);
+    },
+    
+    handleHistory(messages) {
+        console.log('📜 Загружена история сообщений:', messages.length);
+        // Очищаем существующие сообщения и загружаем историю
+        state.messages = [];
+        const messagesContainer = document.getElementById('chatMessages');
+        if (messagesContainer) {
+            messagesContainer.innerHTML = '';
+        }
+        
+        messages.reverse().forEach(message => {
+            messageManager.addMessage(message, false);
+        });
+        
+        // Прокручиваем вниз
+        setTimeout(() => {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }, 100);
+    },
+    
+    handleConnected() {
+        console.log('✅ Подключен к серверу');
+        this.updateConnectionStatus('connected', '🟢 Подключен');
+        
+        // Присоединяемся к чату с текущим пользователем
+        const user = state.currentUser;
+        if (user && user.name) {
+            window.wsManager.joinChat(user.name, user.color);
+        }
+    },
+    
+    handleDisconnected() {
+        console.log('❌ Отключен от сервера');
+        this.updateConnectionStatus('disconnected', '🔴 Отключен');
+    },
+    
+    handleConnectionError() {
+        console.log('⚠️ Ошибка подключения');
+        this.updateConnectionStatus('error', '⚠️ Ошибка');
+    },
+    
+    handleOnlineCount(count) {
+        onlineManager.updateCount(count);
+    },
+    
+    handleServerError(error) {
+        console.error('❌ Ошибка сервера:', error);
+    },
+    
+    updateConnectionStatus(status, text) {
+        // Можно добавить индикатор статуса подключения
+    },
+    
+    sendMessage(text, emoji = null) {
+        return window.wsManager.sendMessage(text, emoji);
+    },
+    
+    startTyping() {
+        if (window.wsManager) {
+            window.wsManager.startTyping();
+        }
+    },
+    
+    stopTyping() {
+        if (window.wsManager) {
+            window.wsManager.stopTyping();
+        }
+    },
+    
+    fallbackToSimulation() {
+        console.log('📱 Использование симуляции чата');
+        // Запускаем симуляцию как fallback
+        setTimeout(() => {
+            if (typeof chatSimulation !== 'undefined') {
+                chatSimulation.simulateUserJoin();
+                setInterval(() => {
+                    if (Math.random() > 0.7) {
+                        chatSimulation.simulateResponse();
+                    }
+                }, 10000);
+            }
+        }, 2000);
+        
+        onlineManager.updateCount(Math.floor(Math.random() * 5) + 1);
+    }
+};
+
 // Инициализация приложения
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Инициализация чата...');
+    console.log('🚀 Инициализация чата...');
     
     // Инициализация мобильной поддержки
     mobileSupport.init();
@@ -484,8 +632,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Инициализация UI
     uiController.init();
     
-    // Обновляем счётчик онлайн с случайным числом
-    onlineManager.updateCount(Math.floor(Math.random() * 5) + 1);
+    // Инициализация реального чата
+    realChatManager.init();
     
     // Мобильное приветствие
     if (mobileSupport.isMobile()) {

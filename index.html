@@ -43,6 +43,9 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="application-name" content="Анонимный чат">
     
+    <!-- Socket.IO Client -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    
     <!-- Apple Touch Icons -->
     <link rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23667eea%22 rx=%2220%22/><text y=%22.9em%22 font-size=%2250%22 text-anchor=%22middle%22 x=%2250%22 fill=%22white%22>💬</text></svg>">
     <link rel="apple-touch-icon" sizes="152x152" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23667eea%22 rx=%2220%22/><text y=%22.9em%22 font-size=%2250%22 text-anchor=%22middle%22 x=%2250%22 fill=%22white%22>💬</text></svg>">
@@ -211,8 +214,9 @@
                 </div>
             </div>
         </div>
-    </div>
+            </div>
 
+    <script src="websocket-manager.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
