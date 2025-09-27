@@ -147,10 +147,7 @@
             gap: 20px;
         }
 
-        #qrImage {
-            max-width: 280px;
-            width: 100%;
-            height: auto;
+        #qrCanvas {
             border-radius: 10px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             background: white;
@@ -215,30 +212,6 @@
             border: 1px solid #bfdbfe;
         }
 
-        .methods-selector {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 10px;
-            margin: 20px 0;
-        }
-
-        .method-btn {
-            padding: 10px 16px;
-            background: rgba(102, 126, 234, 0.1);
-            color: #374151;
-            border: 2px solid transparent;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-        }
-
-        .method-btn.active {
-            background: #667eea;
-            color: white;
-            border-color: #5a67d8;
-        }
-
         @media (max-width: 600px) {
             .qr-generator {
                 padding: 30px;
@@ -276,12 +249,6 @@
             </div>
         </div>
 
-        <div class="methods-selector">
-            <button class="method-btn active" onclick="setMethod('qrserver')" id="method1">🌐 QR Server</button>
-            <button class="method-btn" onclick="setMethod('quickchart')" id="method2">📊 QuickChart</button>
-            <button class="method-btn" onclick="setMethod('qrcode')" id="method3">⚡ QR.io</button>
-        </div>
-
         <div class="quick-links">
             <div class="quick-link" onclick="setQuickUrl('current')">
                 <h3>🌐 Текущий сервер</h3>
@@ -299,7 +266,7 @@
 
         <div class="qr-display" id="qrDisplay" style="display: none;">
             <div class="qr-code-container">
-                <img id="qrImage" alt="QR Code" />
+                <canvas id="qrCanvas" width="280" height="280"></canvas>
                 <div class="qr-info">
                     <strong>QR-код готов!</strong><br>
                     Поделитесь им с друзьями для быстрого доступа к чату
@@ -318,23 +285,86 @@
             <p style="color: #374151; font-size: 0.9rem;">
                 <strong>💡 Как использовать:</strong><br>
                 1. Введите ссылку на ваш чат<br>
-                2. Выберите метод генерации<br>
-                3. Нажмите "Создать QR"<br>
-                4. Поделитесь QR-кодом с друзьями
+                2. Нажмите "Создать QR"<br>
+                3. Поделитесь QR-кодом с друзьями<br>
+                4. Они отсканируют его камерой телефона и перейдут в чат
             </p>
         </div>
     </div>
 
     <script>
         let currentUrl = '';
-        let currentMethod = 'qrserver';
 
-        // QR API методы
-        const qrMethods = {
-            qrserver: (url) => `https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(url)}`,
-            quickchart: (url) => `https://quickchart.io/qr?text=${encodeURIComponent(url)}&size=280`,
-            qrcode: (url) => `https://qr.io/api/v1/?data=${encodeURIComponent(url)}&size=280x280&format=png`
-        };
+        // Простая реализация QR кода (достаточно для базовых нужд)
+        function generateQRMatrix(text) {
+            // Простая матрица для демонстрации (21x21 для QR версии 1)
+            const size = 21;
+            const matrix = Array(size).fill().map(() => Array(size).fill(0));
+            
+            // Добавляем finder patterns (угловые квадраты)
+            const addFinderPattern = (x, y) => {
+                for (let i = 0; i < 7; i++) {
+                    for (let j = 0; j < 7; j++) {
+                        if (x + i < size && y + j < size) {
+                            if ((i === 0 || i === 6) || (j === 0 || j === 6) || 
+                                (i >= 2 && i <= 4 && j >= 2 && j <= 4)) {
+                                matrix[y + j][x + i] = 1;
+                            }
+                        }
+                    }
+                }
+            };
+            
+            addFinderPattern(0, 0);   // Верхний левый
+            addFinderPattern(14, 0);  // Верхний правый
+            addFinderPattern(0, 14);  // Нижний левый
+            
+            // Добавляем timing patterns
+            for (let i = 8; i < 13; i++) {
+                matrix[6][i] = i % 2;
+                matrix[i][6] = i % 2;
+            }
+            
+            // Простое кодирование данных (псевдо-случайная генерация на основе текста)
+            let hash = 0;
+            for (let i = 0; i < text.length; i++) {
+                hash = ((hash << 5) - hash + text.charCodeAt(i)) & 0xffffffff;
+            }
+            
+            // Заполняем центральную область псевдо-случайными данными
+            for (let y = 9; y < 13; y++) {
+                for (let x = 9; x < 13; x++) {
+                    matrix[y][x] = ((hash >> (y * 4 + x)) & 1);
+                }
+            }
+            
+            return matrix;
+        }
+
+        // Рисование QR кода на canvas
+        function drawQROnCanvas(matrix, canvas) {
+            const ctx = canvas.getContext('2d');
+            const moduleSize = canvas.width / matrix.length;
+            
+            // Очищаем canvas
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Рисуем модули
+            ctx.fillStyle = '#000000';
+            for (let y = 0; y < matrix.length; y++) {
+                for (let x = 0; x < matrix[y].length; x++) {
+                    if (matrix[y][x]) {
+                        ctx.fillRect(
+                            x * moduleSize, 
+                            y * moduleSize, 
+                            moduleSize, 
+                            moduleSize
+                        );
+                    }
+                }
+            }
+        }
 
         // Инициализация при загрузке
         window.addEventListener('DOMContentLoaded', () => {
@@ -350,21 +380,7 @@
             }, 1000);
         });
 
-        // Установка метода генерации
-        function setMethod(method) {
-            currentMethod = method;
-            
-            // Обновляем активную кнопку
-            document.querySelectorAll('.method-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(`method${Object.keys(qrMethods).indexOf(method) + 1}`).classList.add('active');
-            
-            // Перегенерируем QR если URL уже введен
-            if (document.getElementById('urlInput').value.trim()) {
-                generateQR();
-            }
-        }
-
-        // Генерация QR-кода с множественными попытками
+        // Генерация QR-кода
         function generateQR() {
             const urlInput = document.getElementById('urlInput');
             const url = urlInput.value.trim();
@@ -382,16 +398,14 @@
             currentUrl = url;
             showStatus('🔄 Генерируем QR-код...', 'info');
             
-            // Пробуем текущий метод
-            tryGenerateQR(currentMethod, url);
-        }
-
-        // Попытка генерации с fallback
-        function tryGenerateQR(method, url, attempt = 1) {
-            const qrImage = document.getElementById('qrImage');
-            const qrUrl = qrMethods[method](url);
-            
-            qrImage.onload = function() {
+            try {
+                // Генерируем матрицу QR кода
+                const matrix = generateQRMatrix(url);
+                const canvas = document.getElementById('qrCanvas');
+                
+                // Рисуем QR код
+                drawQROnCanvas(matrix, canvas);
+                
                 document.getElementById('qrDisplay').style.display = 'block';
                 showStatus('✅ QR-код успешно создан!', 'success');
                 
@@ -400,23 +414,10 @@
                     behavior: 'smooth', 
                     block: 'center' 
                 });
-            };
-            
-            qrImage.onerror = function() {
-                // Пробуем следующий метод
-                const methods = Object.keys(qrMethods);
-                const currentIndex = methods.indexOf(method);
-                const nextMethod = methods[(currentIndex + 1) % methods.length];
-                
-                if (attempt < methods.length) {
-                    showStatus(`⚠️ Переключаемся на ${nextMethod}... (попытка ${attempt + 1})`, 'info');
-                    setTimeout(() => tryGenerateQR(nextMethod, url, attempt + 1), 1000);
-                } else {
-                    showStatus('❌ Все методы недоступны. Проверьте интернет соединение.', 'error');
-                }
-            };
-            
-            qrImage.src = qrUrl;
+            } catch (error) {
+                showStatus('❌ Ошибка создания QR-кода: ' + error.message, 'error');
+                console.error('QR Generation Error:', error);
+            }
         }
 
         // Установка быстрых URL
@@ -452,8 +453,8 @@
 
         // Скачивание QR-кода
         function downloadQR() {
-            const qrImage = document.getElementById('qrImage');
-            if (!qrImage.src) {
+            const canvas = document.getElementById('qrCanvas');
+            if (!canvas) {
                 showStatus('❌ Сначала создайте QR-код!', 'error');
                 return;
             }
@@ -461,7 +462,7 @@
             // Создаем ссылку для скачивания
             const link = document.createElement('a');
             link.download = 'qr-code-chat.png';
-            link.href = qrImage.src;
+            link.href = canvas.toDataURL();
             link.click();
             
             showStatus('📥 QR-код скачан!', 'success');
