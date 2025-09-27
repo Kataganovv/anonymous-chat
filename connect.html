@@ -421,9 +421,9 @@
             chatUrl = `${protocol}//${hostname}:${port || '8000'}/`;
             connectionType = '🏠 Локальная сеть';
             displayAddress = `${hostname}:${port || '8000'}`;
-        } else if (hostname.includes('.serveo.net') || hostname.includes('.lhr.life') || hostname.includes('.ngrok.io') || hostname.includes('.ngrok-free.app')) {
-            // Публичное подключение через туннель
-            chatUrl = `${protocol}//${hostname}${port ? ':' + port : ''}/`;
+        } else if (hostname.includes('.serveo.net') || hostname.includes('.lhr.life') || hostname.includes('.ngrok.io') || hostname.includes('.ngrok-free.app') || hostname.includes('.surge.sh') || hostname.includes('.netlify.app') || hostname.includes('.vercel.app') || hostname.includes('.github.io')) {
+            // Публичное подключение через хостинг или туннель
+            chatUrl = `${protocol}//${hostname}${port && port !== '80' && port !== '443' ? ':' + port : ''}/`;
             connectionType = '🌍 Публичный доступ';
             displayAddress = hostname;
         } else {
@@ -440,9 +440,28 @@
         // Обновляем заголовок в зависимости от типа подключения
         if (connectionType === '🌍 Публичный доступ') {
             document.querySelector('h1').textContent = 'Публичный анонимный чат';
-            document.querySelector('.subtitle').textContent = 'Подключение из любой точки мира';
-            document.querySelector('.network-info h4').innerHTML = '🌍 Публичный сервер';
-            document.querySelector('.network-info p').innerHTML = `Адрес: <strong>${displayAddress}</strong><br>Доступен всем в интернете`;
+            document.querySelector('.subtitle').textContent = 'Доступен из любой точки мира';
+            
+            // Определяем тип хостинга
+            let hostingType = 'Публичный сервер';
+            if (hostname.includes('.surge.sh')) hostingType = 'Surge.sh';
+            else if (hostname.includes('.netlify.app')) hostingType = 'Netlify';
+            else if (hostname.includes('.vercel.app')) hostingType = 'Vercel';
+            else if (hostname.includes('.github.io')) hostingType = 'GitHub Pages';
+            else if (hostname.includes('.ngrok.io') || hostname.includes('.ngrok-free.app')) hostingType = 'Ngrok туннель';
+            else if (hostname.includes('.serveo.net')) hostingType = 'Serveo туннель';
+            else if (hostname.includes('.lhr.life')) hostingType = 'Localtunnel';
+            
+            document.querySelector('.network-info h4').innerHTML = `🌍 ${hostingType}`;
+            document.querySelector('.network-info p').innerHTML = `Адрес: <strong>${displayAddress}</strong>`;
+            
+            // Добавляем информацию о порте, если он не стандартный
+            const portInfo = document.querySelector('.network-info p:last-child');
+            if (port && port !== '80' && port !== '443') {
+                portInfo.innerHTML = `Адрес: <strong>${displayAddress}</strong><br>Порт: <strong>${port}</strong>`;
+            } else {
+                portInfo.innerHTML = `Адрес: <strong>${displayAddress}</strong><br>Стандартный порт (HTTPS)`;
+            }
         }
         
         // Генерируем QR-код с множественными методами
@@ -668,6 +687,16 @@
         document.addEventListener('DOMContentLoaded', async () => {
             // Сначала проверяем публичный URL
             await checkPublicUrl();
+            
+            // Проверяем публичность сервера и обновляем стили
+            if (connectionType === '🌍 Публичный доступ') {
+                // Добавляем специальный стиль для публичного сервера
+                document.body.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+                
+                setTimeout(() => {
+                    showPublicNotification();
+                }, 1000);
+            }
             
             // Затем генерируем QR-код
             generateQR();
