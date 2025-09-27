@@ -1359,6 +1359,23 @@ body[data-keyboard-visible="true"] {
     }
 }
 
+/* Анимации */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
     * {

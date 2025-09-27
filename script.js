@@ -536,17 +536,82 @@ const shareManager = {
     // Генерация QR кода для ссылки
     generateQR: (url) => {
         const qrContainer = document.getElementById('shareQrCode');
-        if (qrContainer && typeof QRCode !== 'undefined') {
-            qrContainer.innerHTML = '';
-            new QRCode(qrContainer, {
-                text: url,
-                width: 120,
-                height: 120,
-                colorDark: '#667eea',
-                colorLight: '#ffffff',
-                correctLevel: QRCode.CorrectLevel.M
-            });
+        if (!qrContainer) return;
+        
+        // Показываем индикатор загрузки
+        qrContainer.innerHTML = `
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 20px;">
+                <div style="color: #6b7280; font-size: 14px;">Генерация QR-кода...</div>
+                <div style="
+                    width: 30px; 
+                    height: 30px; 
+                    border: 3px solid #f3f4f6; 
+                    border-top: 3px solid #667eea; 
+                    border-radius: 50%; 
+                    animation: spin 1s linear infinite;
+                "></div>
+            </div>
+        `;
+        
+        // Пробуем разные API для генерации QR
+        const encodedUrl = encodeURIComponent(url);
+        const qrAPIs = [
+            `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodedUrl}`,
+            `https://quickchart.io/qr?text=${encodedUrl}&size=120`,
+            `https://chart.googleapis.com/chart?chs=120x120&cht=qr&chl=${encodedUrl}`
+        ];
+        
+        shareManager.tryQRAPI(0, qrAPIs, qrContainer, url);
+    },
+    
+    // Попытка генерации QR через API
+    tryQRAPI: (index, apis, container, originalUrl) => {
+        if (index >= apis.length) {
+            // Все API не работают, показываем fallback
+            container.innerHTML = `
+                <div style="
+                    display: flex; 
+                    flex-direction: column; 
+                    align-items: center; 
+                    gap: 10px; 
+                    padding: 15px;
+                    background: #f9fafb;
+                    border-radius: 8px;
+                    border: 2px dashed #d1d5db;
+                    text-align: center;
+                ">
+                    <i class="fas fa-qrcode" style="font-size: 32px; color: #6b7280;"></i>
+                    <div style="color: #374151; font-size: 12px;">
+                        <strong>QR недоступен</strong><br>
+                        <small>Используйте ссылку выше</small>
+                    </div>
+                </div>
+            `;
+            return;
         }
+        
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        
+        img.onload = function() {
+            container.innerHTML = '';
+            img.style.cssText = `
+                width: 120px;
+                height: 120px;
+                border-radius: 8px;
+                border: 2px solid #667eea;
+                background: white;
+                padding: 5px;
+            `;
+            container.appendChild(img);
+        };
+        
+        img.onerror = function() {
+            console.log(`QR API ${index + 1} недоступен, пробуем следующий...`);
+            shareManager.tryQRAPI(index + 1, apis, container, originalUrl);
+        };
+        
+        img.src = apis[index];
     }
 };
 
@@ -597,17 +662,32 @@ function shareToWhatsApp() {
     const text = encodeURIComponent(`${shareManager.shareText}\n\n${url}`);
     const whatsappUrl = `https://wa.me/?text=${text}`;
     
-    // Для мобильных используем whatsapp:// схему
-    if (mobileSupport.isMobile()) {
-        const whatsappApp = `whatsapp://send?text=${text}`;
-        window.location.href = whatsappApp;
-        
-        // Fallback к веб-версии через 2 секунды
-        setTimeout(() => {
-            window.open(whatsappUrl, '_blank');
-        }, 2000);
-    } else {
-        window.open(whatsappUrl, '_blank');
+    try {
+        // Для мобильных используем whatsapp:// схему
+        if (mobileSupport.isMobile()) {
+            const whatsappApp = `whatsapp://send?text=${text}`;
+            window.location.href = whatsappApp;
+            
+            // Fallback к веб-версии через 1.5 секунды
+            setTimeout(() => {
+                const popup = window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+                if (!popup) {
+                    // Если popup заблокирован, используем location
+                    window.location.href = whatsappUrl;
+                }
+            }, 1500);
+        } else {
+            const popup = window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+            if (!popup) {
+                // Если popup заблокирован, копируем ссылку
+                copyToClipboard(`${shareManager.shareText}\n\n${url}`);
+                alert('Ссылка скопирована! Вставьте её в WhatsApp.');
+            }
+        }
+    } catch (error) {
+        console.error('Ошибка при открытии WhatsApp:', error);
+        copyToClipboard(`${shareManager.shareText}\n\n${url}`);
+        alert('Ссылка скопирована! Вставьте её в WhatsApp.');
     }
 }
 
@@ -617,15 +697,28 @@ function shareToTelegram() {
     const text = encodeURIComponent(shareManager.shareText);
     const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${text}`;
     
-    if (mobileSupport.isMobile()) {
-        const telegramApp = `tg://msg_url?url=${encodeURIComponent(url)}&text=${text}`;
-        window.location.href = telegramApp;
-        
-        setTimeout(() => {
-            window.open(telegramUrl, '_blank');
-        }, 2000);
-    } else {
-        window.open(telegramUrl, '_blank');
+    try {
+        if (mobileSupport.isMobile()) {
+            const telegramApp = `tg://msg_url?url=${encodeURIComponent(url)}&text=${text}`;
+            window.location.href = telegramApp;
+            
+            setTimeout(() => {
+                const popup = window.open(telegramUrl, '_blank', 'noopener,noreferrer');
+                if (!popup) {
+                    window.location.href = telegramUrl;
+                }
+            }, 1500);
+        } else {
+            const popup = window.open(telegramUrl, '_blank', 'noopener,noreferrer');
+            if (!popup) {
+                copyToClipboard(`${shareManager.shareText}\n\n${url}`);
+                alert('Ссылка скопирована! Вставьте её в Telegram.');
+            }
+        }
+    } catch (error) {
+        console.error('Ошибка при открытии Telegram:', error);
+        copyToClipboard(`${shareManager.shareText}\n\n${url}`);
+        alert('Ссылка скопирована! Вставьте её в Telegram.');
     }
 }
 
@@ -633,7 +726,18 @@ function shareToTelegram() {
 function shareToFacebook() {
     const url = shareManager.getCurrentUrl();
     const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
-    window.open(facebookUrl, '_blank');
+    
+    try {
+        const popup = window.open(facebookUrl, '_blank', 'width=626,height=436,scrollbars=yes,resizable=yes');
+        if (!popup) {
+            copyToClipboard(url);
+            alert('Ссылка скопирована! Вставьте её в Facebook.');
+        }
+    } catch (error) {
+        console.error('Ошибка при открытии Facebook:', error);
+        copyToClipboard(url);
+        alert('Ссылка скопирована! Вставьте её в Facebook.');
+    }
 }
 
 // Поделиться в Twitter
@@ -641,7 +745,58 @@ function shareToTwitter() {
     const url = shareManager.getCurrentUrl();
     const text = encodeURIComponent(`${shareManager.shareText} ${url}`);
     const twitterUrl = `https://twitter.com/intent/tweet?text=${text}`;
-    window.open(twitterUrl, '_blank');
+    
+    try {
+        const popup = window.open(twitterUrl, '_blank', 'width=550,height=420,scrollbars=yes,resizable=yes');
+        if (!popup) {
+            copyToClipboard(`${shareManager.shareText} ${url}`);
+            alert('Ссылка скопирована! Вставьте её в Twitter.');
+        }
+    } catch (error) {
+        console.error('Ошибка при открытии Twitter:', error);
+        copyToClipboard(`${shareManager.shareText} ${url}`);
+        alert('Ссылка скопирована! Вставьте её в Twitter.');
+    }
+}
+
+// Функция копирования в буфер обмена
+function copyToClipboard(text) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+            console.log('Текст скопирован в буфер обмена');
+        }).catch(err => {
+            console.error('Ошибка копирования:', err);
+            fallbackCopyTextToClipboard(text);
+        });
+    } else {
+        fallbackCopyTextToClipboard(text);
+    }
+}
+
+// Fallback для копирования
+function fallbackCopyTextToClipboard(text) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.top = "0";
+    textArea.style.left = "0";
+    textArea.style.width = "2em";
+    textArea.style.height = "2em";
+    textArea.style.padding = "0";
+    textArea.style.border = "none";
+    textArea.style.outline = "none";
+    textArea.style.boxShadow = "none";
+    textArea.style.background = "transparent";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+        document.execCommand('copy');
+        console.log('Fallback: Текст скопирован');
+    } catch (err) {
+        console.error('Fallback: Не удалось скопировать', err);
+    }
+    document.body.removeChild(textArea);
 }
 
 // Нативный шаринг
@@ -651,14 +806,12 @@ function nativeShare() {
             title: shareManager.shareTitle,
             text: shareManager.shareText,
             url: shareManager.getCurrentUrl()
-        }).then(() => {
-            console.log('Успешно поделились');
-        }).catch((error) => {
-            console.log('Ошибка шаринга:', error);
-            copyShareUrl(); // Fallback к копированию
-        });
+        })
+        .then(() => console.log('Успешно поделились'))
+        .catch((error) => console.log('Ошибка при попытке поделиться:', error));
     } else {
-        copyShareUrl(); // Fallback к копированию
+        // Fallback для браузеров без поддержки Web Share API
+        copyShareUrl();
     }
 }
 
