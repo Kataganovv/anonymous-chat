@@ -273,6 +273,23 @@
             font-size: 1.2rem;
         }
 
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .qr-fallback {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 10px;
+            border: 2px dashed #d1d5db;
+            text-align: center;
+        }
+
         @media (max-width: 768px) {
             .connection-card {
                 padding: 20px;
@@ -428,24 +445,133 @@
             document.querySelector('.network-info p').innerHTML = `Адрес: <strong>${displayAddress}</strong><br>Доступен всем в интернете`;
         }
         
-        // Генерируем QR-код
+        // Генерируем QR-код с множественными методами
         function generateQR() {
-            QRCode.toCanvas(document.getElementById('qrCode'), chatUrl, {
-                width: 200,
-                margin: 2,
-                color: {
-                    dark: '#374151',
-                    light: '#FFFFFF'
+            const qrContainer = document.getElementById('qrCode');
+            
+            // Метод 1: Попробуем библиотеку QRCode.js
+            if (typeof QRCode !== 'undefined') {
+                try {
+                    // Очищаем контейнер
+                    qrContainer.innerHTML = '';
+                    
+                    QRCode.toCanvas(qrContainer, chatUrl, {
+                        width: 200,
+                        margin: 2,
+                        color: {
+                            dark: '#374151',
+                            light: '#FFFFFF'
+                        }
+                    }, function (error) {
+                        if (error) {
+                            console.error('Ошибка QRCode.js:', error);
+                            generateQRWithAPI();
+                        }
+                    });
+                    return;
+                } catch (e) {
+                    console.error('QRCode.js не работает:', e);
                 }
-            }, function (error) {
-                if (error) {
-                    console.error('Ошибка генерации QR-кода:', error);
-                    document.getElementById('qrCode').innerHTML = 
-                        '<div style="display: flex; align-items: center; justify-content: center; height: 200px; color: #6b7280;">Ошибка генерации QR-кода</div>';
-                }
-            });
+            }
+            
+            // Метод 2: Используем API для генерации QR
+            generateQRWithAPI();
         }
         
+        function generateQRWithAPI() {
+            const qrContainer = document.getElementById('qrCode');
+            const encodedUrl = encodeURIComponent(chatUrl);
+            
+            // Попробуем несколько API
+            const qrAPIs = [
+                `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodedUrl}`,
+                `https://quickchart.io/qr?text=${encodedUrl}&size=200`,
+                `https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encodedUrl}`
+            ];
+            
+            qrContainer.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                    <div style="color: #6b7280; font-size: 14px;">Генерация QR-кода...</div>
+                    <div class="qr-loader" style="
+                        width: 40px; 
+                        height: 40px; 
+                        border: 3px solid #f3f4f6; 
+                        border-top: 3px solid #667eea; 
+                        border-radius: 50%; 
+                        animation: spin 1s linear infinite;
+                    "></div>
+                </div>
+            `;
+            
+            // Пробуем первый API
+            tryQRAPI(0, qrAPIs, qrContainer);
+        }
+        
+        function tryQRAPI(index, apis, container) {
+            if (index >= apis.length) {
+                // Все API не работают, показываем fallback
+                container.innerHTML = `
+                    <div style="
+                        display: flex; 
+                        flex-direction: column; 
+                        align-items: center; 
+                        gap: 15px; 
+                        padding: 20px;
+                        background: #f9fafb;
+                        border-radius: 10px;
+                        border: 2px dashed #d1d5db;
+                    ">
+                        <i class="fas fa-qrcode" style="font-size: 48px; color: #6b7280;"></i>
+                        <div style="text-align: center; color: #374151;">
+                            <strong>QR-код недоступен</strong><br>
+                            <small>Используйте ссылку ниже для подключения</small>
+                        </div>
+                        <a href="${chatUrl}" target="_blank" style="
+                            background: #667eea;
+                            color: white;
+                            padding: 8px 16px;
+                            border-radius: 6px;
+                            text-decoration: none;
+                            font-size: 14px;
+                        ">Открыть чат</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            
+            img.onload = function() {
+                container.innerHTML = '';
+                img.style.cssText = `
+                    width: 200px;
+                    height: 200px;
+                    border-radius: 10px;
+                    background: white;
+                    padding: 10px;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                `;
+                container.appendChild(img);
+            };
+            
+            img.onerror = function() {
+                console.log(`QR API ${index + 1} не работает, пробуем следующий...`);
+                tryQRAPI(index + 1, apis, container);
+            };
+            
+            img.src = apis[index];
+        }
+        
+        // Обновление QR-кода
+        function refreshQR() {
+            // Принудительно перегенерируем QR
+            generateQRWithAPI();
+            
+            // Показываем уведомление
+            showNotification('🔄 QR-код обновлен!');
+        }
+
         // Копирование ссылки в буфер обмена
         function copyToClipboard() {
             const urlInput = document.getElementById('chatUrl');
