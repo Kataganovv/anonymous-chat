@@ -275,6 +275,50 @@
             box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
         }
 
+        .mobile-navigation {
+            display: none;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+        }
+
+        .mobile-nav-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 15px 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: #374151;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .mobile-nav-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .mobile-nav-btn.primary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .mobile-nav-btn.primary:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        }
+
+        .mobile-nav-btn i {
+            font-size: 1.2rem;
+        }
+
         @media (max-width: 600px) {
             .qr-generator {
                 padding: 30px;
@@ -295,6 +339,14 @@
             
             .quick-links {
                 grid-template-columns: 1fr;
+            }
+            
+            .chat-navigation {
+                display: none;
+            }
+            
+            .mobile-navigation {
+                display: grid;
             }
         }
     </style>
@@ -356,6 +408,22 @@
             </button>
             <button class="chat-btn secondary" onclick="openChatInNewTab()">
                 🚀 Открыть чат в новой вкладке
+            </button>
+        </div>
+
+        <!-- Мобильная навигация -->
+        <div class="mobile-navigation">
+            <button class="mobile-nav-btn primary" onclick="goToChat()">
+                <i class="fas fa-comments"></i>
+                <span>Чат</span>
+            </button>
+            <button class="mobile-nav-btn" onclick="window.location.href='/connect.html'">
+                <i class="fas fa-mobile-alt"></i>
+                <span>Подключить</span>
+            </button>
+            <button class="mobile-nav-btn" onclick="shareCurrentPage()">
+                <i class="fas fa-share-alt"></i>
+                <span>Поделиться</span>
             </button>
         </div>
 
@@ -583,6 +651,42 @@
         function openChatInNewTab() {
             const currentHost = window.location.origin;
             window.open(currentHost, '_blank');
+        }
+
+        // Поделиться текущей страницей
+        function shareCurrentPage() {
+            const currentUrl = window.location.href;
+            const shareData = {
+                title: 'QR генератор для анонимного чата',
+                text: 'Создавайте QR коды для быстрого доступа к чату!',
+                url: currentUrl
+            };
+
+            if (navigator.share) {
+                navigator.share(shareData).then(() => {
+                    showStatus('📤 Успешно поделились!', 'success');
+                }).catch(() => {
+                    copyToClipboard(currentUrl);
+                });
+            } else {
+                copyToClipboard(currentUrl);
+            }
+        }
+
+        // Скопировать в буфер обмена
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showStatus('📋 Ссылка скопирована!', 'success');
+            }).catch(() => {
+                // Fallback для старых браузеров
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showStatus('📋 Ссылка скопирована!', 'success');
+            });
         }
 
         // Кнопка "Назад к чату"

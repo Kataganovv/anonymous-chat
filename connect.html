@@ -226,10 +226,61 @@
             color: white;
         }
 
+        .mobile-connect-nav {
+            display: none;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+        }
+
+        .mobile-connect-nav-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 15px 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: #374151;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-decoration: none;
+        }
+
+        .mobile-connect-nav-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            color: #374151;
+        }
+
+        .mobile-connect-nav-btn.primary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .mobile-connect-nav-btn.primary:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            color: white;
+        }
+
+        .mobile-connect-nav-btn i {
+            font-size: 1.2rem;
+        }
+
         @media (max-width: 768px) {
             .connection-card {
                 padding: 20px;
                 margin: 10px;
+            }
+            
+            .mobile-connect-nav {
+                display: grid;
             }
 
             .qr-code {
@@ -317,6 +368,22 @@
             </a>
             <button class="btn btn-secondary" onclick="refreshQR()">
                 🔄 Обновить QR-код
+            </button>
+        </div>
+
+        <!-- Мобильная навигация -->
+        <div class="mobile-connect-nav">
+            <a href="/" class="mobile-connect-nav-btn primary">
+                <i class="fas fa-comments"></i>
+                <span>Открыть чат</span>
+            </a>
+            <a href="/qr-generator.html" class="mobile-connect-nav-btn">
+                <i class="fas fa-qrcode"></i>
+                <span>QR генератор</span>
+            </a>
+            <button class="mobile-connect-nav-btn" onclick="shareCurrentPage()">
+                <i class="fas fa-share-alt"></i>
+                <span>Поделиться</span>
             </button>
         </div>
     </div>
@@ -493,6 +560,80 @@
             // Проверяем обновления публичного URL каждые 30 секунд
             setInterval(checkPublicUrl, 30000);
         });
+
+        // Функция поделиться текущей страницей
+        function shareCurrentPage() {
+            const currentUrl = window.location.href;
+            const shareData = {
+                title: 'Подключение к анонимному чату',
+                text: 'Присоединяйтесь к анонимному чату! Отсканируйте QR код или перейдите по ссылке.',
+                url: currentUrl
+            };
+
+            if (navigator.share) {
+                navigator.share(shareData).then(() => {
+                    console.log('Успешно поделились!');
+                }).catch((error) => {
+                    console.log('Ошибка при попытке поделиться:', error);
+                    copyToClipboard(currentUrl);
+                });
+            } else {
+                copyToClipboard(currentUrl);
+            }
+        }
+
+        // Функция копирования в буфер обмена
+        function copyToClipboard(text) {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showNotification('📋 Ссылка скопирована!');
+                }).catch(() => {
+                    fallbackCopyTextToClipboard(text);
+                });
+            } else {
+                fallbackCopyTextToClipboard(text);
+            }
+        }
+
+        function fallbackCopyTextToClipboard(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showNotification('📋 Ссылка скопирована!');
+            } catch (err) {
+                console.error('Fallback: Oops, unable to copy', err);
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                color: white;
+                padding: 16px 20px;
+                border-radius: 12px;
+                box-shadow: 0 8px 32px rgba(16, 185, 129, 0.3);
+                z-index: 1000;
+                font-weight: 500;
+                animation: slideIn 0.3s ease-out;
+                max-width: 300px;
+            `;
+            notification.innerHTML = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideIn 0.3s ease-out reverse';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
     </script>
 </body>
 </html>

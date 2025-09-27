@@ -868,6 +868,87 @@ const mobileSupport = {
     }
 };
 
+// Мобильное меню и навигация
+function toggleMobileMenu() {
+    const mobileMenu = document.getElementById('mobileMenu');
+    if (mobileMenu) {
+        mobileMenu.classList.toggle('active');
+        
+        // Добавляем обработчик для закрытия меню при клике вне его
+        if (mobileMenu.classList.contains('active')) {
+            document.addEventListener('click', closeMobileMenuOnOutsideClick);
+        } else {
+            document.removeEventListener('click', closeMobileMenuOnOutsideClick);
+        }
+    }
+}
+
+function closeMobileMenuOnOutsideClick(event) {
+    const mobileMenu = document.getElementById('mobileMenu');
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    
+    if (mobileMenu && 
+        !mobileMenu.contains(event.target) && 
+        !mobileMenuBtn.contains(event.target)) {
+        mobileMenu.classList.remove('active');
+        document.removeEventListener('click', closeMobileMenuOnOutsideClick);
+    }
+}
+
+// Инициализация мобильных функций
+function initMobileFunctions() {
+    // Добавляем обработчик для кнопки мобильного меню
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleMobileMenu();
+        });
+    }
+    
+    // Обработчик для закрытия меню на ESC
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const mobileMenu = document.getElementById('mobileMenu');
+            if (mobileMenu && mobileMenu.classList.contains('active')) {
+                mobileMenu.classList.remove('active');
+                document.removeEventListener('click', closeMobileMenuOnOutsideClick);
+            }
+        }
+    });
+    
+    // Показываем/скрываем мобильную панель быстрого доступа в зависимости от размера экрана
+    function toggleMobileElements() {
+        const isMobile = window.innerWidth <= 768;
+        const quickPanel = document.querySelector('.mobile-quick-panel');
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        
+        if (quickPanel) {
+            quickPanel.style.display = isMobile ? 'flex' : 'none';
+        }
+        
+        if (mobileMenuBtn) {
+            mobileMenuBtn.style.display = isMobile ? 'flex' : 'none';
+        }
+    }
+    
+    // Вызываем при загрузке и изменении размера окна
+    toggleMobileElements();
+    window.addEventListener('resize', toggleMobileElements);
+    
+    // Haptic feedback для мобильных устройств (если поддерживается)
+    if ('vibrate' in navigator) {
+        document.querySelectorAll('.quick-panel-btn, .mobile-menu-item, .mobile-nav-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                navigator.vibrate(50); // Короткая вибрация
+            });
+        });
+    }
+}
+
+// Инициализируем мобильные функции при загрузке DOM
+document.addEventListener('DOMContentLoaded', initMobileFunctions);
+
 // Экспорт для использования в других файлах (если нужно)
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
@@ -877,6 +958,8 @@ if (typeof module !== 'undefined' && module.exports) {
         userManager,
         messageManager,
         uiController,
-        mobileSupport
+        mobileSupport,
+        toggleMobileMenu,
+        initMobileFunctions
     };
 }
