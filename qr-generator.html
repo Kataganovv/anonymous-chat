@@ -239,6 +239,42 @@
             border-color: #5a67d8;
         }
 
+        .chat-navigation {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .chat-btn {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 180px;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .chat-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .chat-btn.secondary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .chat-btn.secondary:hover {
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
         @media (max-width: 600px) {
             .qr-generator {
                 padding: 30px;
@@ -314,13 +350,23 @@
 
         <div id="status"></div>
         
+        <div class="chat-navigation">
+            <button class="chat-btn" onclick="goToChat()">
+                💬 Перейти в общий чат
+            </button>
+            <button class="chat-btn secondary" onclick="openChatInNewTab()">
+                🚀 Открыть чат в новой вкладке
+            </button>
+        </div>
+
         <div style="margin-top: 30px; padding: 20px; background: rgba(255,255,255,0.1); border-radius: 15px;">
             <p style="color: #374151; font-size: 0.9rem;">
                 <strong>💡 Как использовать:</strong><br>
                 1. Введите ссылку на ваш чат<br>
                 2. Выберите метод генерации<br>
                 3. Нажмите "Создать QR"<br>
-                4. Поделитесь QR-кодом с друзьями
+                4. Поделитесь QR-кодом с друзьями<br>
+                5. Или сразу перейдите в общий чат! 🚀
             </p>
         </div>
     </div>
@@ -527,10 +573,22 @@
             }
         });
 
+        // Переход в чат
+        function goToChat() {
+            const currentHost = window.location.origin;
+            window.location.href = currentHost;
+        }
+
+        // Открыть чат в новой вкладке
+        function openChatInNewTab() {
+            const currentHost = window.location.origin;
+            window.open(currentHost, '_blank');
+        }
+
         // Кнопка "Назад к чату"
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                window.location.href = '/';
+                goToChat();
             }
         });
     </script>

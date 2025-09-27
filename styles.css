@@ -109,6 +109,29 @@ body {
     transform: scale(1.1);
 }
 
+.qr-quick-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    margin-left: 8px;
+}
+
+.qr-quick-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+    color: #fbbf24;
+}
+
 .user-name {
     font-weight: 500;
     font-size: 0.9rem;
@@ -904,7 +927,8 @@ body[data-keyboard-visible="true"] {
     .message-input button,
     .emoji-btn,
     .send-btn,
-    .share-chat-btn {
+    .share-chat-btn,
+    .qr-quick-btn {
         min-height: 48px;
         min-width: 48px;
     }
