@@ -623,7 +623,7 @@ const realChatManager = {
 };
 
 // Инициализация приложения
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     console.log('🚀 Инициализация чата...');
     
     // Инициализация мобильной поддержки
@@ -632,8 +632,62 @@ document.addEventListener('DOMContentLoaded', () => {
     // Инициализация UI
     uiController.init();
     
-    // Инициализация реального чата
-    realChatManager.init();
+    // Инициализация WebSocket менеджера
+    let realChatManager = null;
+    try {
+        const wsManager = new WebSocketManager();
+        
+        // Подписываемся на сообщения от реального чата
+        wsManager.onMessage((data) => {
+            const message = {
+                id: utils.generateId(),
+                text: data.message,
+                author: data.user,
+                userId: data.userId || utils.generateId(),
+                color: data.color || utils.getRandomColor(),
+                timestamp: data.timestamp,
+                type: 'user'
+            };
+            messageManager.addMessage(message);
+        });
+        
+        // Подписываемся на изменения статуса
+        wsManager.onStatusChange((status) => {
+            if (status === 'connected') {
+                state.isConnected = true;
+                console.log('🟢 Подключен к серверу');
+            } else if (status === 'disconnected') {
+                state.isConnected = false;
+                console.log('🔴 Отключен от сервера');
+            }
+        });
+        
+        // Пытаемся инициализировать WebSocket подключение
+        await wsManager.init();
+        realChatManager = wsManager;
+        state.isConnected = true;
+        
+        console.log('✅ WebSocket менеджер инициализирован');
+        
+    } catch (error) {
+        console.log('⚠️ WebSocket недоступен, используем симуляцию:', error.message);
+        realChatManager = null;
+        state.isConnected = false;
+        showServerUnavailableNotification();
+    }
+    
+    // Инициализация реального чата (теперь это fallback функция)
+    if (!realChatManager) {
+        realChatManager = {
+            init: () => {},
+            fallbackToSimulation: () => {
+                setTimeout(() => {
+                    chatSimulation.simulateUserJoin();
+                }, 2000);
+            }
+        };
+        realChatManager.fallbackToSimulation();
+    }
     
     // Мобильное приветствие
     if (mobileSupport.isMobile()) {
@@ -970,6 +1024,24 @@ document.addEventListener('click', (e) => {
         closeShareModal();
     }
 });
+
+// Функция уведомления о недоступности сервера
+function showServerUnavailableNotification() {
+    setTimeout(() => {
+        const message = {
+            id: utils.generateId(),
+            text: '🤖 Сервер реального времени недоступен. Используется демо-режим с ботами.',
+            type: 'system',
+            timestamp: new Date().toISOString()
+        };
+        messageManager.addMessage(message);
+        
+        // Запускаем симуляцию
+        setTimeout(() => {
+            chatSimulation.simulateUserJoin();
+        }, 2000);
+    }, 1000);
+}
 
 // Обработка ошибок
 window.addEventListener('error', (e) => {

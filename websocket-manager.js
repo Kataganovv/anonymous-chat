@@ -10,24 +10,33 @@ class WebSocketManager {
         this.messageCallbacks = [];
         this.statusCallbacks = [];
         
-        this.init();
+        // Не запускаем init автоматически, чтобы можно было дождаться результата
     }
     
-    init() {
+    async init() {
         // Определяем URL сервера
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const host = window.location.hostname;
-        const port = window.location.port || (protocol === 'wss:' ? '443' : '80');
         
-        // Для разработки используем localhost:3000, для продакшена - текущий хост
+        // Для разработки используем localhost:3000
         let serverURL;
         if (host === 'localhost' || host === '127.0.0.1') {
             serverURL = 'http://localhost:3000';
         } else {
-            serverURL = `${window.location.protocol}//${host}:3000`;
+            // Для продакшена пытаемся подключиться к локальному серверу пользователя
+            // Это работает только если пользователь запустил сервер локально
+            serverURL = 'http://localhost:3000';
         }
         
-        console.log('🔌 Подключение к серверу:', serverURL);
+        console.log('🔌 Пытаемся подключиться к серверу:', serverURL);
+        
+        // Проверяем доступность сервера
+        const isServerAvailable = await this.checkServerAvailability(serverURL);
+        
+        if (!isServerAvailable) {
+            console.log('⚠️ WebSocket сервер недоступен, используем симуляцию');
+            this.notifyStatusCallbacks('server_unavailable');
+            return;
+        }
         
         this.socket = io(serverURL, {
             transports: ['websocket', 'polling'],
@@ -36,6 +45,19 @@ class WebSocketManager {
         });
         
         this.setupEventListeners();
+    }
+    
+    async checkServerAvailability(serverURL) {
+        try {
+            const response = await fetch(serverURL.replace(/^ws/, 'http'), {
+                method: 'GET',
+                timeout: 3000
+            });
+            return response.ok;
+        } catch (error) {
+            console.log('🔍 Сервер недоступен:', error.message);
+            return false;
+        }
     }
     
     setupEventListeners() {
